@@ -45,7 +45,7 @@ while True:
                 results = cv2.pointPolygonTest(np.array(area, np.int32), ((cx, cy)), False)
                 if results >= 0:
                     cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 0, 255), 3)  # Draw bounding box around the car
-                    cv2.putText(frame, str(d), (x1, y1), cv2.FONT_HERSHEY_PLAIN, 2, (255, 0, 0), 2)  # Add label
+                    #cv2.putText(frame, str(d), (x1, y1), cv2.FONT_HERSHEY_PLAIN, 2, (255, 0, 0), 2)  # Add label
                     list.append([cx])
 
     for area in areas:
