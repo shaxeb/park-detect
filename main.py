@@ -5,11 +5,13 @@ import numpy as np
 
 points = []  # A list to store points
 
+
 def POINTS(event, x, y, flags, param):
     """Callback function for mouse events"""
     if event == cv2.EVENT_MOUSEMOVE:
         colorsBGR = [x, y]  # Get the coordinates of the mouse cursor
         print(colorsBGR)
+
 
 cv2.namedWindow('FRAME')
 cv2.setMouseCallback('FRAME', POINTS)  # Set the mouse callback function for the frame
@@ -45,7 +47,7 @@ while True:
                 results = cv2.pointPolygonTest(np.array(area, np.int32), ((cx, cy)), False)
                 if results >= 0:
                     cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 0, 255), 3)  # Draw bounding box around the car
-                    #cv2.putText(frame, str(d), (x1, y1), cv2.FONT_HERSHEY_PLAIN, 2, (255, 0, 0), 2)  # Add label
+                    # cv2.putText(frame, str(d), (x1, y1), cv2.FONT_HERSHEY_PLAIN, 2, (255, 0, 0), 2)  # Add label
                     list.append([cx])
 
     for area in areas:
