@@ -55,7 +55,7 @@ while True:
     cv2.putText(frame, str(a), (82, 69), cv2.FONT_HERSHEY_PLAIN, 2, (255, 0, 0), 2)  # Add car count to the frame
 
     cv2.imshow("FRAME", frame)  # Display the frame
-    cv2.setMouseCallback("FRAME", POINTS)  # Set the mouse callback function for the frame
+    # cv2.setMouseCallback("FRAME", POINTS)  # Set the mouse callback function for the frame
 
     if cv2.waitKey(1) & 0xFF == 27:  # Press 'Escape' to quit the program
         break
