@@ -1,12 +1,14 @@
-import cv2
 import pickle
-import torch
+
+import cv2
 import numpy as np
+import torch
 
 points = []  # A list to store points
 
 with open("assets/camip.pkl", 'rb') as f:
-        camera_ip = pickle.load(f)  # Load previously saved polygons from file
+    camera_ip = pickle.load(f)  # Load previously saved polygons from file
+
 
 def POINTS(event, x, y, flags, param):
     """Callback function for mouse events"""
@@ -46,7 +48,7 @@ while True:
         cy = int(y1 + y2) // 2
         if 'car' in d:
             for area in areas:
-                results = cv2.pointPolygonTest(np.array(area, np.int32), ((cx, cy)), False)
+                results = cv2.pointPolygonTest(np.array(area, np.int32), (cx, cy), False)
                 if results >= 0:
                     cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 0, 255), 3)  # Draw bounding box around the car
                     # cv2.putText(frame, str(d), (x1, y1), cv2.FONT_HERSHEY_PLAIN, 2, (255, 0, 0), 2)  # Add label

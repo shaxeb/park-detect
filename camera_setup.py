@@ -1,6 +1,7 @@
+import pickle
+
 import cv2
 import numpy as np
-import pickle
 
 print('Select your option:')
 print('Enter 1 for loading previous used camera ip')
@@ -17,13 +18,14 @@ if ip_select == 1:
         with open("assets\camip.pkl", 'wb') as f:
             pickle.dump(camera_ip, f)
 elif ip_select == 2:
-        print("Enter a new ip: ")
-        camera_ip = str(input())
-        with open("assets\camip.pkl", 'wb') as f:
-            pickle.dump(camera_ip, f)
+    print("Enter a new ip: ")
+    camera_ip = str(input())
+    with open("assets\camip.pkl", 'wb') as f:
+        pickle.dump(camera_ip, f)
 
-#add a way to allow user to choose aspect ratio
+# add a way to allow user to choose aspect ratio
 
+# noinspection PyUnboundLocalVariable
 cap = cv2.VideoCapture(camera_ip)  # Open the video stream for capturing frames
 
 try:
@@ -35,6 +37,7 @@ except:
 points = []  # Stores the points of the current polygon being drawn
 drawing_polygon = False  # Flag to indicate if a polygon is being drawn or not
 
+
 def draw_polygons(frame, polygons):
     """Draws the stored polygons on the frame"""
     for polygon in polygons:
@@ -42,10 +45,12 @@ def draw_polygons(frame, polygons):
         frame = cv2.polylines(frame, [points_array], isClosed=True, color=(0, 255, 0), thickness=2)
     return frame
 
+
 def save_polygons(polygons):
     """Saves the polygons to a file"""
     with open("assets\polygon_points.pkl", 'wb') as f:
         pickle.dump(polygons, f)
+
 
 def complete_polygon():
     """Completes the current polygon being drawn and adds it to the list of polygons"""
@@ -55,14 +60,17 @@ def complete_polygon():
         points = []
         drawing_polygon = False
 
+
 def delete_last_polygon():
     """Deletes the last drawn polygon from the list of polygons"""
     if len(polygons) > 0:
         polygons.pop()
 
+
 def delete_all_polygons():
     """Deletes all polygons from the list"""
     polygons.clear()
+
 
 def mouse_callback(event, x, y, flags, param):
     """Callback function for mouse events"""
@@ -83,6 +91,7 @@ def mouse_callback(event, x, y, flags, param):
                 if cv2.pointPolygonTest(np.array(polygon), (x, y), False) >= 0:
                     polygons.pop(i)
                     break
+
 
 while True:
     success, frame = cap.read()
