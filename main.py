@@ -2,6 +2,7 @@ import cv2
 import pickle
 import torch
 import numpy as np
+import camera_setup
 
 points = []  # A list to store points
 
@@ -18,7 +19,7 @@ cv2.setMouseCallback('FRAME', POINTS)  # Set the mouse callback function for the
 
 model = torch.hub.load('ultralytics/yolov5', 'yolov5s', pretrained=True)  # Load the YOLOv5 model
 
-cap = cv2.VideoCapture('carpark.mp4')  # Open the video file for capturing frames
+cap = cv2.VideoCapture(camera_setup.camera_ip)  # Open the video stream for capturing frames
 count = 0
 
 with open("polygon_points.pkl", 'rb') as f:
