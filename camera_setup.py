@@ -89,14 +89,14 @@ while True:
     if key == 27:  # Press 'Escape' to quit the program
         break
     elif key == ord("s"):
-        save_polygons(polygons)
-        print("Polygon points saved to 'polygon_points.pkl'")  # Save the polygons to a file
-    elif key == ord("c"):
         complete_polygon()  # Complete the current polygon being drawn
+        save_polygons(polygons)
     elif key == ord("d"):
         delete_last_polygon()  # Delete the last drawn polygon
-    elif key == ord("a"):
+        save_polygons(polygons)
+    elif key == ord("x"):
         delete_all_polygons()  # Delete all polygons
+        save_polygons(polygons)
 
 cap.release()
 cv2.destroyAllWindows()
