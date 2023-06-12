@@ -3,7 +3,7 @@ import numpy as np
 import pickle
 
 print("Enter rtsp camera ip")
-camera_ip = input();
+camera_ip = input()
 
 #add a way to allow user to choose aspect ratio
 
