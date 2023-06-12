@@ -2,15 +2,32 @@ import cv2
 import numpy as np
 import pickle
 
-print("Enter rtsp camera ip")
-camera_ip = input()
+print('Select your option:')
+print('Enter 1 for loading previous used camera ip')
+print('Enter 2 for entering new camera ip \n')
+ip_select = int(input())
+if ip_select == 1:
+    try:
+        with open("assets\camip.pkl", 'rb') as f:
+            camera_ip = pickle.load(f)  # Load previously saved polygons from file
+    except:
+        camera_ip = ""  # If file doesn't exist or failed to load, start with an empty list of polygons
+        print("There's no saved camera ip, Enter a new ip: ")
+        camera_ip = str(input())
+        with open("assets\camip.pkl", 'wb') as f:
+            pickle.dump(camera_ip, f)
+elif ip_select == 2:
+        print("Enter a new ip: ")
+        camera_ip = str(input())
+        with open("assets\camip.pkl", 'wb') as f:
+            pickle.dump(camera_ip, f)
 
 #add a way to allow user to choose aspect ratio
 
 cap = cv2.VideoCapture(camera_ip)  # Open the video stream for capturing frames
 
 try:
-    with open("polygon_points.pkl", 'rb') as f:
+    with open("assets\polygon_points.pkl", 'rb') as f:
         polygons = pickle.load(f)  # Load previously saved polygons from file
 except:
     polygons = []  # If file doesn't exist or failed to load, start with an empty list of polygons
@@ -27,7 +44,7 @@ def draw_polygons(frame, polygons):
 
 def save_polygons(polygons):
     """Saves the polygons to a file"""
-    with open("polygon_points.pkl", 'wb') as f:
+    with open("assets\polygon_points.pkl", 'wb') as f:
         pickle.dump(polygons, f)
 
 def complete_polygon():

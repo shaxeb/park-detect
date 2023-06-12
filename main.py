@@ -2,10 +2,11 @@ import cv2
 import pickle
 import torch
 import numpy as np
-import camera_setup
 
 points = []  # A list to store points
 
+with open("assets/camip.pkl", 'rb') as f:
+        camera_ip = pickle.load(f)  # Load previously saved polygons from file
 
 def POINTS(event, x, y, flags, param):
     """Callback function for mouse events"""
@@ -19,10 +20,10 @@ cv2.setMouseCallback('FRAME', POINTS)  # Set the mouse callback function for the
 
 model = torch.hub.load('ultralytics/yolov5', 'yolov5s', pretrained=True)  # Load the YOLOv5 model
 
-cap = cv2.VideoCapture(camera_setup.camera_ip)  # Open the video stream for capturing frames
+cap = cv2.VideoCapture(camera_ip)  # Open the video stream for capturing frames
 count = 0
 
-with open("polygon_points.pkl", 'rb') as f:
+with open("assets\polygon_points.pkl", 'rb') as f:
     areas = pickle.load(f)  # Load the stored areas from file
 
 while True:
