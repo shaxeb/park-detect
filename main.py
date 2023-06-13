@@ -1,13 +1,16 @@
 import pickle
-
 import cv2
 import numpy as np
 import torch
 
 points = []  # A list to store points
 
-with open("assets/camip.pkl", 'rb') as f:
-    camera_ip = pickle.load(f)  # Load previously saved polygons from file
+with open("assets/data.pkl", 'rb') as f:
+    data = pickle.load(f)  # Load camera IP, polygons, and labels from file
+
+camera_ip = data["camera_ip"]
+polygons = data["polygons"]
+labels = data["labels"]
 
 
 def POINTS(event, x, y, flags, param):
@@ -24,9 +27,6 @@ model = torch.hub.load('ultralytics/yolov5', 'yolov5s', pretrained=True)  # Load
 
 cap = cv2.VideoCapture(camera_ip)  # Open the video stream for capturing frames
 count = 0
-
-with open("assets\polygon_points.pkl", 'rb') as f:
-    areas = pickle.load(f)  # Load the stored areas from file
 
 while True:
     ret, frame = cap.read()  # Read a frame from the video
@@ -47,15 +47,19 @@ while True:
         cx = int(x1 + x2) // 2
         cy = int(y1 + y2) // 2
         if 'car' in d:
-            for area in areas:
+            for area in polygons:
                 results = cv2.pointPolygonTest(np.array(area, np.int32), (cx, cy), False)
                 if results >= 0:
                     cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 0, 255), 3)  # Draw bounding box around the car
                     # cv2.putText(frame, str(d), (x1, y1), cv2.FONT_HERSHEY_PLAIN, 2, (255, 0, 0), 2)  # Add label
                     list.append([cx])
 
-    for area in areas:
+    for i, area in enumerate(polygons):
         cv2.polylines(frame, [np.array(area, np.int32)], True, (0, 255, 0), 2)  # Draw the defined areas
+        if i in labels:
+            label = labels[i]
+            label_position = (area[0][0], area[0][1] - 10)
+            cv2.putText(frame, label, label_position, cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2, cv2.LINE_AA)                                           
 
     a = len(list)  # Count the number of cars detected within the defined areas
     cv2.putText(frame, str(a), (82, 69), cv2.FONT_HERSHEY_PLAIN, 2, (255, 0, 0), 2)  # Add car count to the frame
