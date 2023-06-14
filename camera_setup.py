@@ -1,4 +1,5 @@
-import pickle
+import json
+
 import cv2
 import numpy as np
 
@@ -10,23 +11,28 @@ ip_select = int(input())
 
 if ip_select == 1:
     try:
-        with open("assets/data.pkl", 'rb') as f:
-            data = pickle.load(f)  # Load previously saved data from file
+        with open("assets/data.json", 'r') as f:
+            data = json.load(f)  # Load previously saved data from file
+            # Convert label keys to integers
+            data["labels"] = {int(key): value for key,
+                              value in data["labels"].items()}
     except:
-        data = {"camera_ip": "", "polygons": [], "labels": {}}  # If file doesn't exist or failed to load, start with empty data
+        # If file doesn't exist or failed to load, start with empty data
+        data = {"camera_ip": "", "polygons": [], "labels": {}}
         print("There's no saved camera IP, Enter a new IP: ")
         data["camera_ip"] = str(input())
-        with open("assets/data.pkl", 'wb') as f:
-            pickle.dump(data, f)
+        with open("assets/data.json", 'w') as f:
+            json.dump(data, f)
 elif ip_select == 2:
     print("Enter a new IP: ")
     camera_ip = str(input())
     data = {"camera_ip": camera_ip, "polygons": [], "labels": {}}
-    with open("assets/data.pkl", 'wb') as f:
-        pickle.dump(data, f)
+    with open("assets/data.json", 'w') as f:
+        json.dump(data, f)
 
 print('Draw a polygon using your mouse and then label it')
-cap = cv2.VideoCapture(data["camera_ip"])  # Open the video stream for capturing frames
+# Open the video stream for capturing frames
+cap = cv2.VideoCapture(data["camera_ip"])
 
 polygons = data["polygons"]  # Stores the drawn polygons
 labels = data["labels"]  # Stores the labels for each polygon
@@ -39,24 +45,28 @@ def draw_polygons(frame, polygons, labels):
     """Draws the stored polygons and labels on the frame"""
     for i, polygon in enumerate(polygons):
         points_array = np.array(polygon, np.int32).reshape((-1, 1, 2))
-        frame = cv2.polylines(frame, [points_array], isClosed=True, color=(0, 255, 0), thickness=2)
-        if i in labels:
+        frame = cv2.polylines(
+            frame, [points_array], isClosed=True, color=(0, 255, 0), thickness=2)
+        # Check if i exists as a key and the value is not empty
+        if i in labels and labels[i]:
             label = labels[i]
             label_position = (polygon[0][0], polygon[0][1] - 10)
-            cv2.putText(frame, label, label_position, cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2, cv2.LINE_AA)
+            cv2.putText(frame, label, label_position,
+                        cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2, cv2.LINE_AA)
     return frame
 
 
 def save_data(data):
     """Saves the data to a file"""
-    with open("assets/data.pkl", 'wb') as f:
-        pickle.dump(data, f)
+    with open("assets/data.json", 'w') as f:
+        json.dump(data, f)
 
 
 def complete_polygon(label):
     """Completes the current polygon being drawn, adds it to the list of polygons, and saves the label"""
     global points, drawing_polygon
-    if drawing_polygon and len(points) >= 3:  # Minimum 3 points required to form a polygon
+    # Minimum 3 points required to form a polygon
+    if drawing_polygon and len(points) >= 3:
         polygons.append(points)
         labels[len(polygons) - 1] = label
         points = []
@@ -103,32 +113,41 @@ while True:
     if not success:
         break
 
-    frame = cv2.resize(frame, (720, 480))  # Resize the frame for better display
+    # Resize the frame for better display
+    frame = cv2.resize(frame, (720, 480))
 
-    frame = draw_polygons(frame, polygons, labels)  # Draw the stored polygons and labels on the frame
+    # Draw the stored polygons and labels on the frame
+    frame = draw_polygons(frame, polygons, labels)
 
     if drawing_polygon and len(points) > 0:
-        cv2.polylines(frame, [np.array(points)], isClosed=False, color=(0, 255, 0), thickness=2)
+        cv2.polylines(frame, [np.array(points)],
+                      isClosed=False, color=(0, 255, 0), thickness=2)
         # Draw the current polygon being drawn on the frame
 
     cv2.imshow("Frame", frame)  # Display the frame
 
-    cv2.setMouseCallback("Frame", mouse_callback)  # Set the mouse callback function for the frame
+    # Set the mouse callback function for the frame
+    cv2.setMouseCallback("Frame", mouse_callback)
 
     key = cv2.waitKey(1) & 0xFF
 
     if key == 27:  # Press 'Escape' to quit the program
         break
     elif key == ord("s"):
-        label = input("Enter a label for the polygon: ")  # Prompt the user to enter a label
-        complete_polygon(label)  # Complete the current polygon being drawn and save the label
-        save_data({"camera_ip": data["camera_ip"], "polygons": polygons, "labels": labels})
+        # Prompt the user to enter a label
+        label = input("Enter a label for the polygon: ")
+        # Complete the current polygon being drawn and save the label
+        complete_polygon(label)
+        save_data({"camera_ip": data["camera_ip"],
+                  "polygons": polygons, "labels": labels})
     elif key == ord("d"):
         delete_last_polygon()  # Delete the last drawn polygon
-        save_data({"camera_ip": data["camera_ip"], "polygons": polygons, "labels": labels})
+        save_data({"camera_ip": data["camera_ip"],
+                  "polygons": polygons, "labels": labels})
     elif key == ord("x"):
         delete_all_polygons()  # Delete all polygons
-        save_data({"camera_ip": data["camera_ip"], "polygons": polygons, "labels": labels})
+        save_data({"camera_ip": data["camera_ip"],
+                  "polygons": polygons, "labels": labels})
 
 cap.release()
 cv2.destroyAllWindows()
