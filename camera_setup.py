@@ -9,13 +9,22 @@ def draw_polygons(frame, polygons, labels):
         points_array = np.array(polygon, np.int32).reshape((-1, 1, 2))
         frame = cv2.polylines(
             frame, [points_array], isClosed=True, color=(0, 255, 0), thickness=2)
+        
         # Check if i exists as a key and the value is not empty
         if str(i) in labels and labels[str(i)]:
             label = labels[str(i)]
             label_position = (polygon[0][0], polygon[0][1] - 10)
             cv2.putText(frame, label, label_position,
                         cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2, cv2.LINE_AA)
+            
     return frame
+
+
+def draw_polygon_temp(frame, points):
+    """Draws the temporary polygon while the user is drawing it"""
+    if len(points) > 0:
+        cv2.polylines(frame, [np.array(points)],
+                      isClosed=False, color=(0, 255, 0), thickness=2)
 
 def save_data(data):
     """Saves the data to a file"""
@@ -32,6 +41,29 @@ def complete_polygon(label):
         points = []
         drawing_polygon = False
 
+        # Get the current frame
+        _, frame = cap.read()
+
+        # Draw the stored polygons and labels on the frame
+        frame = draw_polygons(frame, polygons, labels)
+
+        # Get the label position of the completed polygon
+        if len(polygons) > 0:
+            label_position = (polygons[-1][0][0], polygons[-1][0][1] - 10)
+
+        # Update the label of the last drawn polygon on the frame
+        if str(len(polygons) - 1) in labels and labels[str(len(polygons) - 1)]:
+            label = labels[str(len(polygons) - 1)]
+            cv2.putText(frame, label, label_position,
+                        cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2, cv2.LINE_AA)
+
+        cv2.imshow("Frame", frame)  # Display the updated frame
+
+        # Save the data for the selected camera
+        selected_camera["polygons"] = polygons
+        selected_camera["labels"] = labels
+        save_data(data)
+
 def delete_last_polygon():
     """Deletes the last drawn polygon from the list of polygons"""
     if len(polygons) > 0:
@@ -45,24 +77,24 @@ def delete_all_polygons():
 
 def mouse_callback(event, x, y, flags, param):
     """Callback function for mouse events"""
-    global points, drawing_polygon
+    global points, drawing_polygon, is_playing
+
+    if is_playing:
+        return
 
     if event == cv2.EVENT_LBUTTONDOWN:
         if not drawing_polygon:
             points = []  # Start a new polygon
             drawing_polygon = True
         points.append((x, y))  # Add the clicked point to the current polygon
-    elif event == cv2.EVENT_RBUTTONDOWN:
-        if drawing_polygon:
-            points = []  # Cancel the current polygon if right-clicked
-            drawing_polygon = False
-        else:
-            # Check if right-clicked point is inside any existing polygon, and remove that polygon
-            for i, polygon in enumerate(polygons):
-                if cv2.pointPolygonTest(np.array(polygon), (x, y), False) >= 0:
-                    polygons.pop(i)
-                    labels.pop(i, None)
-                    break
+
+def play_pause_video():
+    """Toggles the play/pause state of the video"""
+    global is_playing
+    is_playing = not is_playing
+
+# Variable to track the play/pause state of the video
+is_playing = True
 
 try:
     with open("assets/data.json", 'r') as f:
@@ -137,25 +169,19 @@ if option == 2:
         drawing_polygon = False  # Flag to indicate if a polygon is being drawn or not
 
         while True:
-            success, frame = cap.read()
-            if not success:
-                break
+            if is_playing:
+                success, frame = cap.read()
+                if not success:
+                    break
 
             # Resize the frame for better display
             frame = cv2.resize(frame, (720, 480))
 
             # Draw the stored polygons and labels on the frame
-            frame = draw_polygons(frame, polygons)
-
-            # Draw the labels on the frame
-            for label, points in labels.items():
-                for point in points:
-                    cv2.putText(frame, label, tuple(point), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 2)
-
+            frame = draw_polygons(frame, polygons, labels)
 
             if drawing_polygon and len(points) > 0:
-                cv2.polylines(frame, [np.array(points)],
-                              isClosed=False, color=(0, 255, 0), thickness=2)
+                draw_polygon_temp(frame, points)
                 # Draw the current polygon being drawn on the frame
 
             cv2.imshow("Frame", frame)  # Display the frame
@@ -172,22 +198,33 @@ if option == 2:
                 label = input("Enter a label for the polygon: ")
                 # Complete the current polygon being drawn and save the label
                 complete_polygon(label)
+                # Update the labels on the frame
+                frame = draw_polygons(frame, polygons, labels)
+                cv2.imshow("Frame", frame)  # Display the updated frame
                 # Save the data for the selected camera
                 selected_camera["polygons"] = polygons
                 selected_camera["labels"] = labels
                 save_data(data)
             elif key == ord("d"):
                 delete_last_polygon()  # Delete the last drawn polygon
+                # Update the labels on the frame
+                frame = draw_polygons(frame, polygons, labels)
+                cv2.imshow("Frame", frame)  # Display the updated frame
                 # Save the data for the selected camera
                 selected_camera["polygons"] = polygons
                 selected_camera["labels"] = labels
                 save_data(data)
             elif key == ord("x"):
                 delete_all_polygons()  # Delete all polygons
+                # Update the labels on the frame
+                frame = draw_polygons(frame, polygons, labels)
+                cv2.imshow("Frame", frame)  # Display the updated frame
                 # Save the data for the selected camera
                 selected_camera["polygons"] = polygons
                 selected_camera["labels"] = labels
                 save_data(data)
+            elif key == ord(" "):
+                is_playing = not is_playing  # Toggle play/pause state
 
         cap.release()
         cv2.destroyAllWindows()
@@ -219,9 +256,10 @@ if option == 1:
     drawing_polygon = False  # Flag to indicate if a polygon is being drawn or not
 
     while True:
-        success, frame = cap.read()
-        if not success:
-            break
+        if is_playing:
+            success, frame = cap.read()
+            if not success:
+                break
 
         # Resize the frame for better display
         frame = cv2.resize(frame, (720, 480))
@@ -230,8 +268,7 @@ if option == 1:
         frame = draw_polygons(frame, polygons, labels)
 
         if drawing_polygon and len(points) > 0:
-            cv2.polylines(frame, [np.array(points)],
-                          isClosed=False, color=(0, 255, 0), thickness=2)
+            draw_polygon_temp(frame, points)
             # Draw the current polygon being drawn on the frame
 
         cv2.imshow("Frame", frame)  # Display the frame
@@ -248,22 +285,33 @@ if option == 1:
             label = input("Enter a label for the polygon: ")
             # Complete the current polygon being drawn and save the label
             complete_polygon(label)
+            # Update the labels on the frame
+            frame = draw_polygons(frame, polygons, labels)
+            cv2.imshow("Frame", frame)  # Display the updated frame
             # Save the data for the selected camera
             selected_camera["polygons"] = polygons
             selected_camera["labels"] = labels
             save_data(data)
         elif key == ord("d"):
             delete_last_polygon()  # Delete the last drawn polygon
+            # Update the labels on the frame
+            frame = draw_polygons(frame, polygons, labels)
+            cv2.imshow("Frame", frame)  # Display the updated frame
             # Save the data for the selected camera
             selected_camera["polygons"] = polygons
             selected_camera["labels"] = labels
             save_data(data)
         elif key == ord("x"):
             delete_all_polygons()  # Delete all polygons
+            # Update the labels on the frame
+            frame = draw_polygons(frame, polygons, labels)
+            cv2.imshow("Frame", frame)  # Display the updated frame
             # Save the data for the selected camera
             selected_camera["polygons"] = polygons
             selected_camera["labels"] = labels
             save_data(data)
+        elif key == ord(" "):
+            is_playing = not is_playing  # Toggle play/pause state
 
     cap.release()
     cv2.destroyAllWindows()
