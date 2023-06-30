@@ -26,6 +26,13 @@ def draw_polygon_temp(frame, points):
         cv2.polylines(frame, [np.array(points)],
                       isClosed=False, color=(0, 255, 0), thickness=2)
 
+def display_status(frame, is_playing):
+    """Displays the play/pause status on the frame"""
+    status_text = "Playing" if is_playing else "Paused"
+    status_position = (20, 40)
+    cv2.putText(frame, f"Status: {status_text}", status_position,
+                cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 255), 2, cv2.LINE_AA)
+
 def save_data(data):
     """Saves the data to a file"""
     with open("assets/data.json", 'w') as f:
@@ -95,6 +102,7 @@ def play_pause_video():
 
 # Variable to track the play/pause state of the video
 is_playing = True
+
 
 try:
     with open("assets/data.json", 'r') as f:
