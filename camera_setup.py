@@ -1,7 +1,13 @@
 import json
+import sqlite3
 import cv2
 import sys
 import numpy as np
+
+# Create a SQLite3 database and a table to store camera data
+conn = sqlite3.connect("assets/camera_data.db")
+cursor = conn.cursor()
+cursor.execute("CREATE TABLE IF NOT EXISTS cameras (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, ip TEXT, polygons TEXT, labels TEXT)")
 
 def draw_polygons(frame, polygons, labels):
     """Draws the stored polygons and labels on the frame"""
@@ -34,9 +40,13 @@ def display_status(frame, is_playing):
                 cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 255), 2, cv2.LINE_AA)
 
 def save_data(data):
-    """Saves the data to a file"""
-    with open("assets/data.json", 'w') as f:
-        json.dump(data, f)
+    """Saves the data to the SQLite3 database"""
+    for camera_name, camera_data in data["cameras"].items():
+        polygons = json.dumps(camera_data["polygons"])
+        labels = json.dumps(camera_data["labels"])
+        cursor.execute("INSERT OR REPLACE INTO cameras (name, ip, polygons, labels) VALUES (?, ?, ?, ?)",
+               (camera_name, camera_data["camera_ip"], polygons, labels))
+    conn.commit()
 
 def complete_polygon(label):
     """Completes the current polygon being drawn, adds it to the list of polygons, and saves the label"""
@@ -105,23 +115,18 @@ is_playing = True
 
 
 try:
-    with open("assets/data.json", 'r') as f:
-        data = json.load(f)
-        # Remove unused "polygons" and "labels"
-        data.pop("polygons", None)
-        data.pop("labels", None)
-        # Convert label keys to integers
-        data["cameras"] = {
-            camera_name: {
-                "camera_ip": camera_data["camera_ip"],
-                "polygons": camera_data.get("polygons", []),
-                "labels": {str(key): value for key, value in camera_data.get("labels", {}).items()}
-            }
-            for camera_name, camera_data in data["cameras"].items()
+    cursor.execute("SELECT * FROM cameras")
+    rows = cursor.fetchall()
+    data = {"cameras": {}}
+    for row in rows:
+        uid, camera_name, camera_ip, polygons, labels = row
+        data["cameras"][camera_name] = {
+            "camera_ip": camera_ip,
+            "polygons": json.loads(polygons),
+            "labels": json.loads(labels)
         }
-
-except (FileNotFoundError, json.JSONDecodeError):
-    # If file doesn't exist or failed to load, start with empty data
+except sqlite3.Error:
+    # If the table doesn't exist or failed to load, start with empty data
     data = {"cameras": {}}
 
 # Prompt the user to select an option
@@ -323,3 +328,5 @@ if option == 1:
 
     cap.release()
     cv2.destroyAllWindows()
+    # Close the SQLite3 connection
+    conn.close()
