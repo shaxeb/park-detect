@@ -11,7 +11,7 @@ def mouse_callback(event, x, y, flags, param):
         print(colorsBGR)
 
 # Connect to the SQLite database
-conn = sqlite3.connect("assets/camera_data.db")
+conn = sqlite3.connect("assets/database.db")
 cursor = conn.cursor()
 
 # Load camera names from the database
