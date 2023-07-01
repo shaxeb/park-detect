@@ -2,6 +2,7 @@ import json
 import cv2
 import numpy as np
 import torch
+import sqlite3
 
 def mouse_callback(event, x, y, flags, param):
     """Callback function for mouse events"""
@@ -9,13 +10,16 @@ def mouse_callback(event, x, y, flags, param):
         colorsBGR = [x, y]  # Get the coordinates of the mouse cursor
         print(colorsBGR)
 
-# Load camera IP, polygons, and labels from file
-with open("assets/data.json", 'r') as f:
-    data = json.load(f)
+# Connect to the SQLite database
+conn = sqlite3.connect("assets/camera_data.db")
+cursor = conn.cursor()
 
-camera_names = list(data["cameras"].keys())
+# Load camera names from the database
+cursor.execute("SELECT name FROM cameras")
+camera_names = [row[0] for row in cursor.fetchall()]
+
 if len(camera_names) == 0:
-    print("No cameras available. Please add a camera to the JSON database.")
+    print("No cameras available. Please add a camera to the SQLite database.")
     exit()
 
 print("Select a camera:")
@@ -24,10 +28,14 @@ for i, name in enumerate(camera_names):
 
 camera_select = int(input())
 selected_camera_name = camera_names[camera_select - 1]
-selected_camera = data["cameras"][selected_camera_name]
-camera_ip = selected_camera["camera_ip"]
-polygons = selected_camera["polygons"]
-labels = selected_camera["labels"]
+
+# Retrieve camera data from the database
+cursor.execute("SELECT ip, polygons, labels FROM cameras WHERE name=?", (selected_camera_name,))
+camera_data = cursor.fetchone()
+
+camera_ip = camera_data[0]
+polygons = json.loads(camera_data[1])
+labels = json.loads(camera_data[2])
 
 # Convert the label keys to integers
 labels = {int(k): v for k, v in labels.items()}

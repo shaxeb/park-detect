@@ -79,7 +79,6 @@ def complete_polygon(label):
         # Save the data for the selected camera
         selected_camera["polygons"] = polygons
         selected_camera["labels"] = labels
-        save_data(data)
 
 def delete_last_polygon():
     """Deletes the last drawn polygon from the list of polygons"""
@@ -153,9 +152,7 @@ if option == 2:
         "labels": {}
     }
 
-    # Save the updated data to the file
-    with open("assets/data.json", 'w') as f:
-        json.dump(data, f)
+    
 
     print("New camera added successfully!")
 
@@ -241,9 +238,14 @@ if option == 2:
 
         cap.release()
         cv2.destroyAllWindows()
+        # Close the SQLite3 connection
+        conn.close()
+        sys.exit(0) # Exit the program after annotation
 
     elif annotation_option == 2:
         print("Exiting the program.")
+        # Close the SQLite3 connection
+        conn.close()
         sys.exit(0)
 
 
