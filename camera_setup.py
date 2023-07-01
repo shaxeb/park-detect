@@ -1,13 +1,16 @@
 import json
 import sqlite3
-import cv2
 import sys
+
+import cv2
 import numpy as np
 
 # Create a SQLite3 database and a table to store camera data
 conn = sqlite3.connect("assets/camera_data.db")
 cursor = conn.cursor()
-cursor.execute("CREATE TABLE IF NOT EXISTS cameras (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, ip TEXT, polygons TEXT, labels TEXT)")
+cursor.execute(
+    "CREATE TABLE IF NOT EXISTS cameras (name TEXT, ip TEXT PRIMARY KEY, polygons TEXT, labels TEXT)")
+
 
 def draw_polygons(frame, polygons, labels):
     """Draws the stored polygons and labels on the frame"""
@@ -15,14 +18,14 @@ def draw_polygons(frame, polygons, labels):
         points_array = np.array(polygon, np.int32).reshape((-1, 1, 2))
         frame = cv2.polylines(
             frame, [points_array], isClosed=True, color=(0, 255, 0), thickness=2)
-        
+
         # Check if i exists as a key and the value is not empty
         if str(i) in labels and labels[str(i)]:
             label = labels[str(i)]
             label_position = (polygon[0][0], polygon[0][1] - 10)
             cv2.putText(frame, label, label_position,
                         cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2, cv2.LINE_AA)
-            
+
     return frame
 
 
@@ -32,6 +35,7 @@ def draw_polygon_temp(frame, points):
         cv2.polylines(frame, [np.array(points)],
                       isClosed=False, color=(0, 255, 0), thickness=2)
 
+
 def display_status(frame, is_playing):
     """Displays the play/pause status on the frame"""
     status_text = "Playing" if is_playing else "Paused"
@@ -39,14 +43,16 @@ def display_status(frame, is_playing):
     cv2.putText(frame, f"Status: {status_text}", status_position,
                 cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 255), 2, cv2.LINE_AA)
 
+
 def save_data(data):
     """Saves the data to the SQLite3 database"""
     for camera_name, camera_data in data["cameras"].items():
         polygons = json.dumps(camera_data["polygons"])
         labels = json.dumps(camera_data["labels"])
         cursor.execute("INSERT OR REPLACE INTO cameras (name, ip, polygons, labels) VALUES (?, ?, ?, ?)",
-               (camera_name, camera_data["camera_ip"], polygons, labels))
+                       (camera_name, camera_data["camera_ip"], polygons, labels))
     conn.commit()
+
 
 def complete_polygon(label):
     """Completes the current polygon being drawn, adds it to the list of polygons, and saves the label"""
@@ -80,16 +86,19 @@ def complete_polygon(label):
         selected_camera["polygons"] = polygons
         selected_camera["labels"] = labels
 
+
 def delete_last_polygon():
     """Deletes the last drawn polygon from the list of polygons"""
     if len(polygons) > 0:
         polygons.pop()
         labels.pop(len(polygons), None)
 
+
 def delete_all_polygons():
     """Deletes all polygons from the list"""
     polygons.clear()
     labels.clear()
+
 
 def mouse_callback(event, x, y, flags, param):
     """Callback function for mouse events"""
@@ -104,10 +113,12 @@ def mouse_callback(event, x, y, flags, param):
             drawing_polygon = True
         points.append((x, y))  # Add the clicked point to the current polygon
 
+
 def play_pause_video():
     """Toggles the play/pause state of the video"""
     global is_playing
     is_playing = not is_playing
+
 
 # Variable to track the play/pause state of the video
 is_playing = True
@@ -118,7 +129,7 @@ try:
     rows = cursor.fetchall()
     data = {"cameras": {}}
     for row in rows:
-        uid, camera_name, camera_ip, polygons, labels = row
+        camera_name, camera_ip, polygons, labels = row
         data["cameras"][camera_name] = {
             "camera_ip": camera_ip,
             "polygons": json.loads(polygons),
@@ -151,8 +162,6 @@ if option == 2:
         "polygons": [],
         "labels": {}
     }
-
-    
 
     print("New camera added successfully!")
 
@@ -240,7 +249,7 @@ if option == 2:
         cv2.destroyAllWindows()
         # Close the SQLite3 connection
         conn.close()
-        sys.exit(0) # Exit the program after annotation
+        sys.exit(0)
 
     elif annotation_option == 2:
         print("Exiting the program.")
@@ -303,9 +312,11 @@ if option == 1:
             # Update the labels on the frame
             frame = draw_polygons(frame, polygons, labels)
             cv2.imshow("Frame", frame)  # Display the updated frame
-            # Save the data for the selected camera
+            # Update the data for the selected camera
             selected_camera["polygons"] = polygons
             selected_camera["labels"] = labels
+            # Save the updated data to the database using the camera IP as the key
+            data["cameras"][selected_camera["camera_ip"]] = selected_camera
             save_data(data)
         elif key == ord("d"):
             delete_last_polygon()  # Delete the last drawn polygon
