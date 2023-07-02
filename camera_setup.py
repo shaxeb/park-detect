@@ -11,7 +11,7 @@ labels = {}
 
 
 # Create a SQLite3 database and a table to store camera data
-conn = sqlite3.connect("assets/database.db")
+conn = sqlite3.connect("database.db")
 cursor = conn.cursor()
 cursor.execute(
     "CREATE TABLE IF NOT EXISTS cameras (name TEXT, ip TEXT PRIMARY KEY, polygons TEXT, labels TEXT)")
@@ -92,7 +92,6 @@ def complete_polygon(label):
         selected_camera["labels"] = labels
 
 
-
 def delete_last_polygon():
     if len(polygons) > 0:
         polygons.pop()
@@ -106,6 +105,7 @@ def delete_last_polygon():
                     del camera_data["polygons"][last_polygon_label]
                 if last_polygon_label in camera_data["labels"]:
                     del camera_data["labels"][last_polygon_label]
+
 
 def delete_all_polygons():
     polygons.clear()
@@ -184,7 +184,8 @@ if option == 2:
 
         if selection_option == 1:
             # Find the existing camera with the same IP address
-            selected_camera = next((camera_data for camera_data in data["cameras"].values() if camera_data["camera_ip"] == camera_ip), None)
+            selected_camera = next((camera_data for camera_data in data["cameras"].values(
+            ) if camera_data["camera_ip"] == camera_ip), None)
             print("Existing camera selected.")
         else:
             # Add a different camera with a different IP address
@@ -195,6 +196,9 @@ if option == 2:
             }
             selected_camera = data["cameras"][camera_name]
             print("New camera added successfully!")
+
+        # Save the data to the database
+        save_data(data)
     else:
         # Add the new camera to the data
         data["cameras"][camera_name] = {
@@ -205,7 +209,6 @@ if option == 2:
         selected_camera = data["cameras"][camera_name]
         print("New camera added successfully!")
 
-
     print("Select an option:")
     print("Enter 1 to annotate the newly added camera")
     print("Enter 2 to exit")
@@ -214,12 +217,14 @@ if option == 2:
 
     if annotation_option == 1:
         # Check if a camera with the same IP address already exists in the database
-        existing_camera = next((camera_data for camera_data in data["cameras"].values() if camera_data["camera_ip"] == camera_ip), None)
+        existing_camera = next((camera_data for camera_data in data["cameras"].values(
+        ) if camera_data["camera_ip"] == camera_ip), None)
 
         if existing_camera:
             # Use the existing camera data
             selected_camera = existing_camera
-            selected_camera_name = next((camera_name for camera_name, camera_data in data["cameras"].items() if camera_data == existing_camera), None)
+            selected_camera_name = next((camera_name for camera_name, camera_data in data["cameras"].items(
+            ) if camera_data == existing_camera), None)
             print("Existing camera selected.")
         else:
             # Load the newly added camera for annotation

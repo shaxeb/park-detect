@@ -1,5 +1,6 @@
 import subprocess
 
+
 def switch_program():
     """Switches between camera_setup.py and detect.py based on user input"""
     while True:
@@ -18,5 +19,6 @@ def switch_program():
             break
         else:
             print("Invalid choice. Please try again.")
+
 
 switch_program()

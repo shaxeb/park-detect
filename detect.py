@@ -4,14 +4,16 @@ import numpy as np
 import torch
 import sqlite3
 
+
 def mouse_callback(event, x, y, flags, param):
     """Callback function for mouse events"""
     if event == cv2.EVENT_MOUSEMOVE:
         colorsBGR = [x, y]  # Get the coordinates of the mouse cursor
         print(colorsBGR)
 
+
 # Connect to the SQLite database
-conn = sqlite3.connect("assets/database.db")
+conn = sqlite3.connect("database.db")
 cursor = conn.cursor()
 
 # Load camera names from the database
@@ -30,7 +32,8 @@ camera_select = int(input())
 selected_camera_name = camera_names[camera_select - 1]
 
 # Retrieve camera data from the database
-cursor.execute("SELECT ip, polygons, labels FROM cameras WHERE name=?", (selected_camera_name,))
+cursor.execute(
+    "SELECT ip, polygons, labels FROM cameras WHERE name=?", (selected_camera_name,))
 camera_data = cursor.fetchone()
 
 camera_ip = camera_data[0]
@@ -43,7 +46,8 @@ labels = {int(k): v for k, v in labels.items()}
 cv2.namedWindow('FRAME')
 cv2.setMouseCallback('FRAME', mouse_callback)
 
-model = torch.hub.load('ultralytics/yolov5', 'yolov5s', pretrained=True)  # Load the YOLOv5 model
+model = torch.hub.load('ultralytics/yolov5', 'yolov5s',
+                       pretrained=True)  # Load the YOLOv5 model
 
 cap = cv2.VideoCapture(camera_ip)  # Open the video stream for capturing frames
 
@@ -75,13 +79,16 @@ while True:
                     car_count += 1
 
     for i, area in enumerate(polygons):
-        cv2.polylines(frame, [np.array(area, np.int32)], True, (0, 255, 0), 2)  # Draw the defined areas
+        cv2.polylines(frame, [np.array(area, np.int32)],
+                      True, (0, 255, 0), 2)  # Draw the defined areas
         if i in labels:
             label = labels[i]
             label_position = (area[0][0], area[0][1] - 10)
-            cv2.putText(frame, label, label_position, cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2, cv2.LINE_AA)
+            cv2.putText(frame, label, label_position,
+                        cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2, cv2.LINE_AA)
 
-    cv2.putText(frame, str(car_count), (82, 69), cv2.FONT_HERSHEY_PLAIN, 2, (255, 0, 0), 2)  # Add car count to the frame
+    cv2.putText(frame, str(car_count), (82, 69), cv2.FONT_HERSHEY_PLAIN,
+                2, (255, 0, 0), 2)  # Add car count to the frame
 
     cv2.imshow("FRAME", frame)  # Display the frame
 
