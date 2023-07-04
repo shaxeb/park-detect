@@ -1,0 +1,14 @@
+<RCC>
+  <qresource prefix="media">
+    <file>media/search.png</file>
+    <file>media/menu.png</file>
+    <file>media/casino-cctv.png</file>
+    <file>media/check.png</file>
+    <file>media/close.png</file>
+    <file>media/edit.png</file>
+    <file>media/home.png</file>
+    <file>media/user.png</file>
+    <file>media/wiselens-logo.png</file>
+    <file>media/wiselens-logo-full.png</file>
+  </qresource>
+</RCC>
