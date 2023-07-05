@@ -363,7 +363,7 @@
        <item>
         <widget class="QStackedWidget" name="stackedWidget">
          <property name="currentIndex">
-          <number>1</number>
+          <number>2</number>
          </property>
          <widget class="QWidget" name="home_page">
           <layout class="QGridLayout" name="gridLayout_6">
@@ -456,7 +456,7 @@
                   </layout>
                  </item>
                  <item>
-                  <widget class="QPushButton" name="addCameraButton">
+                  <widget class="QPushButton" name="addCamButton">
                    <property name="toolTip">
                     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Add Camera&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                    </property>
@@ -483,7 +483,7 @@
                <item>
                 <layout class="QHBoxLayout" name="horizontalLayout_6">
                  <item>
-                  <widget class="QTableWidget" name="tableWidget"/>
+                  <widget class="QTableWidget" name="camTableWidget"/>
                  </item>
                  <item>
                   <layout class="QVBoxLayout" name="verticalLayout_6">
@@ -511,7 +511,7 @@
                     </widget>
                    </item>
                    <item>
-                    <widget class="QPushButton" name="removeCamButton_2">
+                    <widget class="QPushButton" name="selectCamButton">
                      <property name="toolTip">
                       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Annotate Camera&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                      </property>
@@ -540,17 +540,12 @@
            </item>
           </layout>
          </widget>
-         <widget class="QWidget" name="edit_page">
+         <widget class="QWidget" name="editPage">
           <layout class="QGridLayout" name="gridLayout_2">
-           <item row="0" column="0">
-            <widget class="QLabel" name="label_8">
-             <property name="font">
-              <font>
-               <pointsize>12</pointsize>
-              </font>
-             </property>
+           <item row="1" column="0">
+            <widget class="QLabel" name="camViewLabel">
              <property name="text">
-              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;Here you can Annotate your selected camera feed.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              <string/>
              </property>
             </widget>
            </item>

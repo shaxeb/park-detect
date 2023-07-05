@@ -244,25 +244,25 @@ class Ui_MainWindow(object):
 
         self.horizontalLayout_7.addLayout(self.horizontalLayout_5)
 
-        self.addCameraButton = QPushButton(self.camera_page)
-        self.addCameraButton.setObjectName(u"addCameraButton")
-        self.addCameraButton.setStyleSheet(u"")
+        self.addCamButton = QPushButton(self.camera_page)
+        self.addCamButton.setObjectName(u"addCamButton")
+        self.addCamButton.setStyleSheet(u"")
         icon7 = QIcon()
         icon7.addFile(u"media/check.png", QSize(), QIcon.Normal, QIcon.Off)
-        self.addCameraButton.setIcon(icon7)
-        self.addCameraButton.setIconSize(QSize(32, 32))
+        self.addCamButton.setIcon(icon7)
+        self.addCamButton.setIconSize(QSize(32, 32))
 
-        self.horizontalLayout_7.addWidget(self.addCameraButton)
+        self.horizontalLayout_7.addWidget(self.addCamButton)
 
 
         self.verticalLayout_7.addLayout(self.horizontalLayout_7)
 
         self.horizontalLayout_6 = QHBoxLayout()
         self.horizontalLayout_6.setObjectName(u"horizontalLayout_6")
-        self.tableWidget = QTableWidget(self.camera_page)
-        self.tableWidget.setObjectName(u"tableWidget")
+        self.camTableWidget = QTableWidget(self.camera_page)
+        self.camTableWidget.setObjectName(u"camTableWidget")
 
-        self.horizontalLayout_6.addWidget(self.tableWidget)
+        self.horizontalLayout_6.addWidget(self.camTableWidget)
 
         self.verticalLayout_6 = QVBoxLayout()
         self.verticalLayout_6.setObjectName(u"verticalLayout_6")
@@ -276,12 +276,12 @@ class Ui_MainWindow(object):
 
         self.verticalLayout_6.addWidget(self.removeCamButton)
 
-        self.removeCamButton_2 = QPushButton(self.camera_page)
-        self.removeCamButton_2.setObjectName(u"removeCamButton_2")
-        self.removeCamButton_2.setStyleSheet(u"")
-        self.removeCamButton_2.setIconSize(QSize(22, 22))
+        self.selectCamButton = QPushButton(self.camera_page)
+        self.selectCamButton.setObjectName(u"selectCamButton")
+        self.selectCamButton.setStyleSheet(u"")
+        self.selectCamButton.setIconSize(QSize(22, 22))
 
-        self.verticalLayout_6.addWidget(self.removeCamButton_2)
+        self.verticalLayout_6.addWidget(self.selectCamButton)
 
 
         self.horizontalLayout_6.addLayout(self.verticalLayout_6)
@@ -296,17 +296,16 @@ class Ui_MainWindow(object):
         self.gridLayout_3.addLayout(self.verticalLayout_8, 0, 0, 1, 1)
 
         self.stackedWidget.addWidget(self.camera_page)
-        self.edit_page = QWidget()
-        self.edit_page.setObjectName(u"edit_page")
-        self.gridLayout_2 = QGridLayout(self.edit_page)
+        self.editPage = QWidget()
+        self.editPage.setObjectName(u"editPage")
+        self.gridLayout_2 = QGridLayout(self.editPage)
         self.gridLayout_2.setObjectName(u"gridLayout_2")
-        self.label_8 = QLabel(self.edit_page)
-        self.label_8.setObjectName(u"label_8")
-        self.label_8.setFont(font)
+        self.camViewLabel = QLabel(self.editPage)
+        self.camViewLabel.setObjectName(u"camViewLabel")
 
-        self.gridLayout_2.addWidget(self.label_8, 0, 0, 1, 1)
+        self.gridLayout_2.addWidget(self.camViewLabel, 1, 0, 1, 1)
 
-        self.stackedWidget.addWidget(self.edit_page)
+        self.stackedWidget.addWidget(self.editPage)
         self.user_page = QWidget()
         self.user_page.setObjectName(u"user_page")
         self.gridLayout_4 = QGridLayout(self.user_page)
@@ -415,7 +414,7 @@ class Ui_MainWindow(object):
         self.exit_btn_2.clicked.connect(MainWindow.close)
         self.exit_btn_1.clicked.connect(MainWindow.close)
 
-        self.stackedWidget.setCurrentIndex(1)
+        self.stackedWidget.setCurrentIndex(2)
 
 
         QMetaObject.connectSlotsByName(MainWindow)
@@ -450,19 +449,19 @@ class Ui_MainWindow(object):
 #endif // QT_CONFIG(whatsthis)
         self.camipLineEdit.setText("")
 #if QT_CONFIG(tooltip)
-        self.addCameraButton.setToolTip(QCoreApplication.translate("MainWindow", u"<html><head/><body><p>Add Camera</p></body></html>", None))
+        self.addCamButton.setToolTip(QCoreApplication.translate("MainWindow", u"<html><head/><body><p>Add Camera</p></body></html>", None))
 #endif // QT_CONFIG(tooltip)
-        self.addCameraButton.setText("")
+        self.addCamButton.setText("")
 #if QT_CONFIG(tooltip)
         self.removeCamButton.setToolTip(QCoreApplication.translate("MainWindow", u"<html><head/><body><p>Remove Camera</p></body></html>", None))
 #endif // QT_CONFIG(tooltip)
         self.removeCamButton.setText(QCoreApplication.translate("MainWindow", u" Delete camera", None))
 #if QT_CONFIG(tooltip)
-        self.removeCamButton_2.setToolTip(QCoreApplication.translate("MainWindow", u"<html><head/><body><p>Annotate Camera</p></body></html>", None))
+        self.selectCamButton.setToolTip(QCoreApplication.translate("MainWindow", u"<html><head/><body><p>Annotate Camera</p></body></html>", None))
 #endif // QT_CONFIG(tooltip)
-        self.removeCamButton_2.setText(QCoreApplication.translate("MainWindow", u"Select camera\n"
+        self.selectCamButton.setText(QCoreApplication.translate("MainWindow", u"Select camera\n"
 " for Annotation", None))
-        self.label_8.setText(QCoreApplication.translate("MainWindow", u"<html><head/><body><p align=\"center\">Here you can Annotate your selected camera feed.</p></body></html>", None))
+        self.camViewLabel.setText("")
         self.label_9.setText(QCoreApplication.translate("MainWindow", u"<html><head/><body><p align=\"center\">This page is for user authentication</p></body></html>", None))
         self.search_string_label.setText(QCoreApplication.translate("MainWindow", u"<html><head/><body><p align=\"center\">Search Page</p></body></html>", None))
         self.logo_label_2.setText("")
