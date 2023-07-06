@@ -292,6 +292,7 @@ class Ui_MainWindow(object):
 
         self.toggleStreamButton = QPushButton(self.editPage)
         self.toggleStreamButton.setObjectName(u"toggleStreamButton")
+        self.toggleStreamButton.setCheckable(True)
 
         self.gridLayout_2.addWidget(self.toggleStreamButton, 2, 0, 1, 1)
 
@@ -302,7 +303,7 @@ class Ui_MainWindow(object):
 
         self.selectedCamLabel = QLabel(self.editPage)
         self.selectedCamLabel.setObjectName(u"selectedCamLabel")
-        self.selectedCamLabel.setMaximumSize(QSize(761253, 11))
+        self.selectedCamLabel.setMaximumSize(QSize(761253, 20))
 
         self.gridLayout_2.addWidget(self.selectedCamLabel, 1, 0, 1, 2)
 

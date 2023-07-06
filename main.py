@@ -6,12 +6,33 @@ import sys
 
 from PySide6 import QtCore, QtGui
 from PySide6.QtGui import QImage, QPixmap, Qt
-from PySide6.QtCore import Slot, QObject, QThread, Signal
+from PySide6.QtCore import Slot, QObject, QThread, Signal, QMutex, QWaitCondition, QTimer
 from PySide6.QtSql import QSqlDatabase, QSqlQueryModel, QSqlQuery
 from PySide6.QtWidgets import (QApplication, QMainWindow, QPushButton,
                                QStackedWidget, QTableWidget, QTableWidgetItem, QWidget, QMessageBox, QLabel)
 
 from app_ui import Ui_MainWindow
+
+def draw_polygons(frame, polygons, labels, current_polygon_points):
+    """Draws the stored polygons and labels on the frame"""
+    for i, polygon in enumerate(polygons):
+        points_array = np.array(polygon, np.int32).reshape((-1, 1, 2))
+        frame = cv2.polylines(
+            frame, [points_array], isClosed=True, color=(0, 255, 0), thickness=2)
+
+        # Check if i exists as a key and the value is not empty
+        if str(i) in labels and labels[str(i)]:
+            label = labels[str(i)]
+            label_position = (polygon[0][0], polygon[0][1] - 10)
+            cv2.putText(frame, label, label_position,
+                        cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2, cv2.LINE_AA)
+
+    if len(current_polygon_points) > 0:
+        current_polygon_array = np.array(current_polygon_points, np.int32).reshape((-1, 1, 2))
+        frame = cv2.polylines(
+            frame, [current_polygon_array], isClosed=False, color=(0, 255, 0), thickness=2)
+
+    return frame
 
 
 class Model:
@@ -19,6 +40,9 @@ class Model:
         self.current_index = 0
         self.selected_ip = ""
         self.stream_active = False
+        self.current_polygon_points = []
+        self.polygons = []
+        self.labels = {}
 
 
 class Controller:
@@ -31,26 +55,43 @@ class Controller:
         self.view.home_btn_2.toggled.connect(lambda: self.on_button_toggled(0))
         self.view.cam_btn_1.toggled.connect(lambda: self.on_button_toggled(1))
         self.view.cam_btn_2.toggled.connect(lambda: self.on_button_toggled(1))
-        self.view.edit_btn_1.toggled.connect(lambda: self.on_button_toggled(3))
-        self.view.edit_btn_2.toggled.connect(lambda: self.on_button_toggled(3))
-        
-        # Connect the selectCamButton to the select_cam_button_clicked slot
+        self.view.edit_btn_1.toggled.connect(lambda: self.on_button_toggled(2))
+        self.view.edit_btn_2.toggled.connect(lambda: self.on_button_toggled(2))
+
         self.view.selectCamButton.clicked.connect(self.select_cam_button_clicked)
 
-        # Connect the toggleStreamButton to the toggle_stream_button_clicked slot
-        self.view.toggleStreamButton.clicked.connect(self.toggle_stream_button_clicked)
+        self.view.camViewLabel.mousePressEvent = self.mousePressEvent
+
+        self.view.completePloygonButton.clicked.connect(self.complete_polygon_button_clicked)
+
+        self.view.toggleStreamButton.clicked.connect(self.toggle_stream_button_clicked)  # Connect toggleStreamButton
 
         self.view.user_btn.clicked.connect(self.user_btn_clicked)
 
+    def mousePressEvent(self, event):
+        if self.model.stream_active and self.model.current_index == 1:  # Only allow drawing when the stream is active and on the camPage
+            if event.button() == Qt.LeftButton:
+                point = (event.x(), event.y())
+                self.model.current_polygon_points.append(point)
+                self.display_frame()  # Update the frame with the new polygon points
+
+    def complete_polygon_button_clicked(self):
+        if self.model.stream_active and self.model.current_index == 1:  # Only allow completing the polygon when the stream is active and on the camPage
+            ip = self.model.selected_ip
+            polygons = self.fetch_polygons_from_database(ip)
+            polygons.append(self.model.current_polygon_points)
+            self.update_polygons_in_database(ip, polygons)
+
+            self.model.current_polygon_points = []  # Clear the current polygon points
+            self.display_frame()  # Update the frame after completing the polygon
+
     @Slot()
     def select_cam_button_clicked(self):
-        self.view.stackedWidget.setCurrentIndex(3)  # Navigate to the editPage
+        self.view.stackedWidget.setCurrentIndex(2)  # Navigate to the editPage
         self.model.selected_ip = self.view.camTableWidget.item(
             self.view.camTableWidget.currentRow(), 1).text()  # Retrieve the selected IP address
 
-        # Update the selectedCamLabel with the camera info
         self.view.selectedCamLabel.setText(f"Selected Camera IP: {self.model.selected_ip}")
-        # Start the video stream
         self.start_video_stream()
 
     def start_video_stream(self):
@@ -66,11 +107,15 @@ class Controller:
 
     @Slot()
     def toggle_stream_button_clicked(self):
+        if self.view.toggleStreamButton.isChecked():
+            self.start_video_stream()  # Start or resume video playback
+        else:
+            self.stop_video_stream()  # Stop video playback
+
+
+    def pause_video_stream(self):
         if self.video_thread is not None:
-            if self.video_thread.running:
-                self.stop_video_stream()
-            else:
-                self.start_video_stream()
+            self.video_thread.pause()  # Pause video playback
 
     def stop_video_stream(self):
         if self.video_thread is not None:
@@ -78,7 +123,6 @@ class Controller:
             self.video_thread.wait()
             self.video_thread = None
 
-        # Clear the camViewLabel
         self.view.camViewLabel.clear()
     
     @Slot(np.ndarray)
@@ -86,10 +130,13 @@ class Controller:
         # Convert the frame from BGR to RGB format
         frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
 
+        # Draw polygons on the frame
+        frame_with_polygons = draw_polygons(frame_rgb, self.model.polygons, self.model.labels, self.model.current_polygon_points)
+
         # Resize the frame to fit the camViewLabel
         width = 800
         height = 600
-        frame_resized = cv2.resize(frame_rgb, (width, height))
+        frame_resized = cv2.resize(frame_with_polygons, (width, height))
 
         # Convert the frame to QImage format
         image = QImage(frame_resized.data, frame_resized.shape[1],
@@ -99,15 +146,18 @@ class Controller:
         pixmap = QPixmap.fromImage(image)
         self.view.camViewLabel.setPixmap(pixmap)
 
+
     @Slot()
     def user_btn_clicked(self):
-        self.view.stackedWidget.setCurrentIndex(2)
+        self.view.stackedWidget.setCurrentIndex(3)
 
     @Slot(int)
     def on_button_toggled(self, index):
         if index >= 0 and index < self.view.stackedWidget.count():
             self.view.stackedWidget.setCurrentIndex(index)
             self.model.current_index = index
+
+from PySide6.QtCore import QTimer
 
 class VideoThread(QThread):
     frame_available = Signal(np.ndarray)
@@ -116,6 +166,9 @@ class VideoThread(QThread):
         super(VideoThread, self).__init__()
         self.ip = ip
         self.running = False
+        self.paused = False
+        self.mutex = QMutex()
+        self.condition = QWaitCondition()
 
     def run(self):
         cap = cv2.VideoCapture(self.ip)
@@ -124,12 +177,40 @@ class VideoThread(QThread):
         while self.running:
             ret, frame = cap.read()
             if ret:
+                self.mutex.lock()
+                if self.paused:
+                    self.condition.wait(self.mutex)
+                self.mutex.unlock()
+
                 self.frame_available.emit(frame)
+
+            # Allow the event loop to process events
+            QApplication.processEvents()
+
+            # Pause the thread for a short interval
+            QTimer.singleShot(1, self.dummy)  # Use a short interval to minimize delay
 
         cap.release()
 
+    def dummy(self):
+        pass
+
     def stop(self):
         self.running = False
+        self.mutex.lock()
+        self.condition.wakeAll()
+        self.mutex.unlock()
+
+    def pause(self):
+        self.mutex.lock()
+        self.paused = True
+        self.mutex.unlock()
+
+    def resume(self):
+        self.mutex.lock()
+        self.paused = False
+        self.condition.wakeAll()
+        self.mutex.unlock()
 
 
 class MainWindow(QMainWindow):
@@ -166,8 +247,28 @@ class MainWindow(QMainWindow):
         cursor.execute(
             "CREATE TABLE IF NOT EXISTS cameras (name TEXT UNIQUE, ip TEXT PRIMARY KEY UNIQUE, polygons TEXT, labels TEXT)")
 
-        # Create an instance of the EditPage and add it to the stackedWidget
-        self.ui.stackedWidget.addWidget(self.ui.editPage)
+    def fetch_polygons_from_database(self, ip):
+        polygons = []
+        labels = {}
+
+        cursor = self.conn.cursor()
+        cursor.execute("SELECT polygons, labels FROM cameras WHERE ip = ?", (ip,))
+        result = cursor.fetchone()
+
+        if result:
+            polygons_str, labels_str = result
+            polygons = json.loads(polygons_str)
+            labels = json.loads(labels_str)
+
+        return polygons, labels
+
+    def update_polygons_in_database(self, ip, polygons, labels):
+        polygons_str = json.dumps(polygons)
+        labels_str = json.dumps(labels)
+
+        cursor = self.conn.cursor()
+        cursor.execute("UPDATE cameras SET polygons = ?, labels = ? WHERE ip = ?", (polygons_str, labels_str, ip))
+        self.conn.commit()
 
     def on_table_cell_clicked(self, row, column):
         self.ui.camnameLineEdit.setText(self.ui.camTableWidget.item(row, 0).text())
@@ -257,4 +358,3 @@ if __name__ == "__main__":
     window.show()
 
     sys.exit(app.exec())
-
