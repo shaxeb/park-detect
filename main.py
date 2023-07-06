@@ -62,7 +62,7 @@ class Controller:
 
         self.view.camViewLabel.mousePressEvent = self.mousePressEvent
 
-        self.view.completePloygonButton.clicked.connect(self.complete_polygon_button_clicked)
+        self.view.completePolygonButton.clicked.connect(self.complete_polygon_button_clicked)
 
         self.view.toggleStreamButton.clicked.connect(self.toggle_stream_button_clicked)  # Connect toggleStreamButton
 
