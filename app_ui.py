@@ -15,17 +15,17 @@ from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
     QFont, QFontDatabase, QGradient, QIcon,
     QImage, QKeySequence, QLinearGradient, QPainter,
     QPalette, QPixmap, QRadialGradient, QTransform)
-from PySide6.QtWidgets import (QApplication, QGridLayout, QHBoxLayout, QHeaderView,
-    QLabel, QLineEdit, QMainWindow, QPushButton,
-    QSizePolicy, QSpacerItem, QStackedWidget, QTableWidget,
-    QTableWidgetItem, QVBoxLayout, QWidget)
+from PySide6.QtWidgets import (QApplication, QComboBox, QGridLayout, QHBoxLayout,
+    QHeaderView, QLabel, QLineEdit, QMainWindow,
+    QPushButton, QSizePolicy, QSpacerItem, QStackedWidget,
+    QTableWidget, QTableWidgetItem, QVBoxLayout, QWidget)
 import resources_rc
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         if not MainWindow.objectName():
             MainWindow.setObjectName(u"MainWindow")
-        MainWindow.resize(992, 550)
+        MainWindow.resize(1014, 697)
         self.centralwidget = QWidget(MainWindow)
         self.centralwidget.setObjectName(u"centralwidget")
         self.gridLayout = QGridLayout(self.centralwidget)
@@ -143,35 +143,15 @@ class Ui_MainWindow(object):
 
         self.horizontalLayout_3.addItem(self.horizontalSpacer)
 
-        self.horizontalLayout = QHBoxLayout()
-        self.horizontalLayout.setSpacing(10)
-        self.horizontalLayout.setObjectName(u"horizontalLayout")
-        self.search_input = QLineEdit(self.header_widget)
-        self.search_input.setObjectName(u"search_input")
-
-        self.horizontalLayout.addWidget(self.search_input)
-
-        self.search_btn = QPushButton(self.header_widget)
-        self.search_btn.setObjectName(u"search_btn")
-        icon5 = QIcon()
-        icon5.addFile(u":/media/media/search.png", QSize(), QIcon.Normal, QIcon.Off)
-        self.search_btn.setIcon(icon5)
-        self.search_btn.setIconSize(QSize(18, 18))
-
-        self.horizontalLayout.addWidget(self.search_btn)
-
-
-        self.horizontalLayout_3.addLayout(self.horizontalLayout)
-
         self.horizontalSpacer_2 = QSpacerItem(168, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
 
         self.horizontalLayout_3.addItem(self.horizontalSpacer_2)
 
         self.user_btn = QPushButton(self.header_widget)
         self.user_btn.setObjectName(u"user_btn")
-        icon6 = QIcon()
-        icon6.addFile(u"media/user.png", QSize(), QIcon.Normal, QIcon.Off)
-        self.user_btn.setIcon(icon6)
+        icon5 = QIcon()
+        icon5.addFile(u"media/user.png", QSize(), QIcon.Normal, QIcon.Off)
+        self.user_btn.setIcon(icon5)
         self.user_btn.setIconSize(QSize(20, 20))
 
         self.horizontalLayout_3.addWidget(self.user_btn)
@@ -181,11 +161,11 @@ class Ui_MainWindow(object):
 
         self.stackedWidget = QStackedWidget(self.widget)
         self.stackedWidget.setObjectName(u"stackedWidget")
-        self.home_page = QWidget()
-        self.home_page.setObjectName(u"home_page")
-        self.gridLayout_6 = QGridLayout(self.home_page)
+        self.homePage = QWidget()
+        self.homePage.setObjectName(u"homePage")
+        self.gridLayout_6 = QGridLayout(self.homePage)
         self.gridLayout_6.setObjectName(u"gridLayout_6")
-        self.label_7 = QLabel(self.home_page)
+        self.label_7 = QLabel(self.homePage)
         self.label_7.setObjectName(u"label_7")
         font = QFont()
         font.setPointSize(12)
@@ -193,14 +173,14 @@ class Ui_MainWindow(object):
 
         self.gridLayout_6.addWidget(self.label_7, 0, 0, 1, 1)
 
-        self.stackedWidget.addWidget(self.home_page)
-        self.camera_page = QWidget()
-        self.camera_page.setObjectName(u"camera_page")
-        self.gridLayout_3 = QGridLayout(self.camera_page)
+        self.stackedWidget.addWidget(self.homePage)
+        self.camPage = QWidget()
+        self.camPage.setObjectName(u"camPage")
+        self.gridLayout_3 = QGridLayout(self.camPage)
         self.gridLayout_3.setObjectName(u"gridLayout_3")
         self.verticalLayout_8 = QVBoxLayout()
         self.verticalLayout_8.setObjectName(u"verticalLayout_8")
-        self.label_3 = QLabel(self.camera_page)
+        self.label_3 = QLabel(self.camPage)
         self.label_3.setObjectName(u"label_3")
         self.label_3.setFont(font)
 
@@ -212,7 +192,7 @@ class Ui_MainWindow(object):
         self.horizontalLayout_7.setObjectName(u"horizontalLayout_7")
         self.horizontalLayout_4 = QHBoxLayout()
         self.horizontalLayout_4.setObjectName(u"horizontalLayout_4")
-        self.label_5 = QLabel(self.camera_page)
+        self.label_5 = QLabel(self.camPage)
         self.label_5.setObjectName(u"label_5")
         font1 = QFont()
         font1.setPointSize(10)
@@ -220,7 +200,7 @@ class Ui_MainWindow(object):
 
         self.horizontalLayout_4.addWidget(self.label_5)
 
-        self.camnameLineEdit = QLineEdit(self.camera_page)
+        self.camnameLineEdit = QLineEdit(self.camPage)
         self.camnameLineEdit.setObjectName(u"camnameLineEdit")
 
         self.horizontalLayout_4.addWidget(self.camnameLineEdit)
@@ -230,13 +210,13 @@ class Ui_MainWindow(object):
 
         self.horizontalLayout_5 = QHBoxLayout()
         self.horizontalLayout_5.setObjectName(u"horizontalLayout_5")
-        self.label_4 = QLabel(self.camera_page)
+        self.label_4 = QLabel(self.camPage)
         self.label_4.setObjectName(u"label_4")
         self.label_4.setFont(font1)
 
         self.horizontalLayout_5.addWidget(self.label_4)
 
-        self.camipLineEdit = QLineEdit(self.camera_page)
+        self.camipLineEdit = QLineEdit(self.camPage)
         self.camipLineEdit.setObjectName(u"camipLineEdit")
 
         self.horizontalLayout_5.addWidget(self.camipLineEdit)
@@ -244,12 +224,12 @@ class Ui_MainWindow(object):
 
         self.horizontalLayout_7.addLayout(self.horizontalLayout_5)
 
-        self.addCamButton = QPushButton(self.camera_page)
+        self.addCamButton = QPushButton(self.camPage)
         self.addCamButton.setObjectName(u"addCamButton")
         self.addCamButton.setStyleSheet(u"")
-        icon7 = QIcon()
-        icon7.addFile(u"media/check.png", QSize(), QIcon.Normal, QIcon.Off)
-        self.addCamButton.setIcon(icon7)
+        icon6 = QIcon()
+        icon6.addFile(u"media/check.png", QSize(), QIcon.Normal, QIcon.Off)
+        self.addCamButton.setIcon(icon6)
         self.addCamButton.setIconSize(QSize(32, 32))
 
         self.horizontalLayout_7.addWidget(self.addCamButton)
@@ -259,24 +239,24 @@ class Ui_MainWindow(object):
 
         self.horizontalLayout_6 = QHBoxLayout()
         self.horizontalLayout_6.setObjectName(u"horizontalLayout_6")
-        self.camTableWidget = QTableWidget(self.camera_page)
+        self.camTableWidget = QTableWidget(self.camPage)
         self.camTableWidget.setObjectName(u"camTableWidget")
 
         self.horizontalLayout_6.addWidget(self.camTableWidget)
 
         self.verticalLayout_6 = QVBoxLayout()
         self.verticalLayout_6.setObjectName(u"verticalLayout_6")
-        self.removeCamButton = QPushButton(self.camera_page)
+        self.removeCamButton = QPushButton(self.camPage)
         self.removeCamButton.setObjectName(u"removeCamButton")
         self.removeCamButton.setStyleSheet(u"")
-        icon8 = QIcon()
-        icon8.addFile(u"media/close.png", QSize(), QIcon.Normal, QIcon.Off)
-        self.removeCamButton.setIcon(icon8)
+        icon7 = QIcon()
+        icon7.addFile(u"media/close.png", QSize(), QIcon.Normal, QIcon.Off)
+        self.removeCamButton.setIcon(icon7)
         self.removeCamButton.setIconSize(QSize(22, 22))
 
         self.verticalLayout_6.addWidget(self.removeCamButton)
 
-        self.selectCamButton = QPushButton(self.camera_page)
+        self.selectCamButton = QPushButton(self.camPage)
         self.selectCamButton.setObjectName(u"selectCamButton")
         self.selectCamButton.setStyleSheet(u"")
         self.selectCamButton.setIconSize(QSize(22, 22))
@@ -295,39 +275,63 @@ class Ui_MainWindow(object):
 
         self.gridLayout_3.addLayout(self.verticalLayout_8, 0, 0, 1, 1)
 
-        self.stackedWidget.addWidget(self.camera_page)
+        self.stackedWidget.addWidget(self.camPage)
         self.editPage = QWidget()
         self.editPage.setObjectName(u"editPage")
         self.gridLayout_2 = QGridLayout(self.editPage)
         self.gridLayout_2.setObjectName(u"gridLayout_2")
+        self.completePloygonButton = QPushButton(self.editPage)
+        self.completePloygonButton.setObjectName(u"completePloygonButton")
+
+        self.gridLayout_2.addWidget(self.completePloygonButton, 2, 1, 1, 1)
+
+        self.deleteLastPolygonButton = QPushButton(self.editPage)
+        self.deleteLastPolygonButton.setObjectName(u"deleteLastPolygonButton")
+
+        self.gridLayout_2.addWidget(self.deleteLastPolygonButton, 2, 2, 1, 1)
+
+        self.toggleStreamButton = QPushButton(self.editPage)
+        self.toggleStreamButton.setObjectName(u"toggleStreamButton")
+
+        self.gridLayout_2.addWidget(self.toggleStreamButton, 2, 0, 1, 1)
+
+        self.removeAllPolygonsButton = QPushButton(self.editPage)
+        self.removeAllPolygonsButton.setObjectName(u"removeAllPolygonsButton")
+
+        self.gridLayout_2.addWidget(self.removeAllPolygonsButton, 2, 3, 1, 1)
+
+        self.selectedCamLabel = QLabel(self.editPage)
+        self.selectedCamLabel.setObjectName(u"selectedCamLabel")
+        self.selectedCamLabel.setMaximumSize(QSize(761253, 11))
+
+        self.gridLayout_2.addWidget(self.selectedCamLabel, 1, 0, 1, 2)
+
         self.camViewLabel = QLabel(self.editPage)
         self.camViewLabel.setObjectName(u"camViewLabel")
+        self.camViewLabel.setMaximumSize(QSize(1280, 720))
 
-        self.gridLayout_2.addWidget(self.camViewLabel, 1, 0, 1, 1)
+        self.gridLayout_2.addWidget(self.camViewLabel, 0, 0, 1, 4)
+
+        self.aspectRatioComboBox = QComboBox(self.editPage)
+        self.aspectRatioComboBox.addItem("")
+        self.aspectRatioComboBox.addItem("")
+        self.aspectRatioComboBox.setObjectName(u"aspectRatioComboBox")
+        self.aspectRatioComboBox.setEditable(False)
+
+        self.gridLayout_2.addWidget(self.aspectRatioComboBox, 1, 2, 1, 1)
 
         self.stackedWidget.addWidget(self.editPage)
-        self.user_page = QWidget()
-        self.user_page.setObjectName(u"user_page")
-        self.gridLayout_4 = QGridLayout(self.user_page)
-        self.gridLayout_4.setObjectName(u"gridLayout_4")
-        self.label_9 = QLabel(self.user_page)
+        self.userPage_2 = QWidget()
+        self.userPage_2.setObjectName(u"userPage_2")
+        self.gridLayout_5 = QGridLayout(self.userPage_2)
+        self.gridLayout_5.setObjectName(u"gridLayout_5")
+        self.label_9 = QLabel(self.userPage_2)
         self.label_9.setObjectName(u"label_9")
         self.label_9.setFont(font)
 
-        self.gridLayout_4.addWidget(self.label_9, 0, 0, 1, 1)
+        self.gridLayout_5.addWidget(self.label_9, 0, 0, 1, 1)
 
-        self.stackedWidget.addWidget(self.user_page)
-        self.search_page = QWidget()
-        self.search_page.setObjectName(u"search_page")
-        self.gridLayout_5 = QGridLayout(self.search_page)
-        self.gridLayout_5.setObjectName(u"gridLayout_5")
-        self.search_string_label = QLabel(self.search_page)
-        self.search_string_label.setObjectName(u"search_string_label")
-        self.search_string_label.setFont(font)
-
-        self.gridLayout_5.addWidget(self.search_string_label, 0, 0, 1, 1)
-
-        self.stackedWidget.addWidget(self.search_page)
+        self.stackedWidget.addWidget(self.userPage_2)
 
         self.verticalLayout_5.addWidget(self.stackedWidget)
 
@@ -428,8 +432,6 @@ class Ui_MainWindow(object):
         self.edit_btn_1.setText("")
         self.exit_btn_1.setText("")
         self.menu_btn.setText("")
-        self.search_input.setPlaceholderText(QCoreApplication.translate("MainWindow", u"Search", None))
-        self.search_btn.setText("")
         self.user_btn.setText("")
         self.label_7.setText(QCoreApplication.translate("MainWindow", u"<html><head/><body><p align=\"center\">This is a 7 day free trail.</p><p align=\"center\">Click on the User button on the top left to register a license.</p></body></html>", None))
         self.label_3.setText(QCoreApplication.translate("MainWindow", u"<html><head/><body><p align=\"center\">To add a camera, </p><p align=\"center\">enter camera name and it's IP address</p></body></html>", None))
@@ -437,6 +439,7 @@ class Ui_MainWindow(object):
         self.label_5.setToolTip(QCoreApplication.translate("MainWindow", u"<html><head/><body><p>Enter your camera name below.<br/>eg. Cam-1</p></body></html>", None))
 #endif // QT_CONFIG(tooltip)
         self.label_5.setText(QCoreApplication.translate("MainWindow", u"Camera Name:", None))
+        self.camnameLineEdit.setPlaceholderText(QCoreApplication.translate("MainWindow", u"cam-1", None))
 #if QT_CONFIG(tooltip)
         self.label_4.setToolTip(QCoreApplication.translate("MainWindow", u"<html><head/><body><p>Enter your camera IP address below in this format.</p><p>https://ipaddress:port/video</p></body></html>", None))
 #endif // QT_CONFIG(tooltip)
@@ -448,6 +451,7 @@ class Ui_MainWindow(object):
         self.camipLineEdit.setWhatsThis(QCoreApplication.translate("MainWindow", u"<html><head/><body><p>Enter your camera IP address in this format. </p><p>https://ipaddress:port/video</p></body></html>", None))
 #endif // QT_CONFIG(whatsthis)
         self.camipLineEdit.setText("")
+        self.camipLineEdit.setPlaceholderText(QCoreApplication.translate("MainWindow", u"https://ip_address:port/video", None))
 #if QT_CONFIG(tooltip)
         self.addCamButton.setToolTip(QCoreApplication.translate("MainWindow", u"<html><head/><body><p>Add Camera</p></body></html>", None))
 #endif // QT_CONFIG(tooltip)
@@ -461,9 +465,20 @@ class Ui_MainWindow(object):
 #endif // QT_CONFIG(tooltip)
         self.selectCamButton.setText(QCoreApplication.translate("MainWindow", u"Select camera\n"
 " for Annotation", None))
+        self.completePloygonButton.setText(QCoreApplication.translate("MainWindow", u"Complete Polygon", None))
+        self.deleteLastPolygonButton.setText(QCoreApplication.translate("MainWindow", u"Delete Last Polygon", None))
+        self.toggleStreamButton.setText(QCoreApplication.translate("MainWindow", u"Toggle Stream", None))
+        self.removeAllPolygonsButton.setText(QCoreApplication.translate("MainWindow", u"Remove All Polygons", None))
+        self.selectedCamLabel.setText(QCoreApplication.translate("MainWindow", u"Selected Camera: ", None))
         self.camViewLabel.setText("")
+        self.aspectRatioComboBox.setItemText(0, QCoreApplication.translate("MainWindow", u"4:3", None))
+        self.aspectRatioComboBox.setItemText(1, QCoreApplication.translate("MainWindow", u"16:9", None))
+
+#if QT_CONFIG(tooltip)
+        self.aspectRatioComboBox.setToolTip(QCoreApplication.translate("MainWindow", u"<html><head/><body><p>Select aspect ratio for your camera</p></body></html>", None))
+#endif // QT_CONFIG(tooltip)
+        self.aspectRatioComboBox.setPlaceholderText(QCoreApplication.translate("MainWindow", u"Select Aspect Ratio", None))
         self.label_9.setText(QCoreApplication.translate("MainWindow", u"<html><head/><body><p align=\"center\">This page is for user authentication</p></body></html>", None))
-        self.search_string_label.setText(QCoreApplication.translate("MainWindow", u"<html><head/><body><p align=\"center\">Search Page</p></body></html>", None))
         self.logo_label_2.setText("")
         self.home_btn_2.setText(QCoreApplication.translate("MainWindow", u" Home", None))
         self.cam_btn_2.setText(QCoreApplication.translate("MainWindow", u" Add Camera", None))

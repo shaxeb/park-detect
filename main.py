@@ -4,7 +4,6 @@ import cv2
 import numpy as np
 import sys
 
-from functools import partial
 from PySide6 import QtCore, QtGui
 from PySide6.QtGui import QImage, QPixmap, Qt
 from PySide6.QtCore import Slot, QObject, QThread, Signal
@@ -18,39 +17,120 @@ from app_ui import Ui_MainWindow
 class Model:
     def __init__(self):
         self.current_index = 0
+        self.selected_ip = ""
+        self.stream_active = False
 
 
 class Controller:
     def __init__(self, model, view):
         self.model = model
         self.view = view
+        self.video_thread = None
 
         self.view.home_btn_1.toggled.connect(lambda: self.on_button_toggled(0))
         self.view.home_btn_2.toggled.connect(lambda: self.on_button_toggled(0))
         self.view.cam_btn_1.toggled.connect(lambda: self.on_button_toggled(1))
         self.view.cam_btn_2.toggled.connect(lambda: self.on_button_toggled(1))
-        self.view.edit_btn_1.toggled.connect(lambda: self.on_button_toggled(2))
-        self.view.edit_btn_2.toggled.connect(lambda: self.on_button_toggled(2))
+        self.view.edit_btn_1.toggled.connect(lambda: self.on_button_toggled(3))
+        self.view.edit_btn_2.toggled.connect(lambda: self.on_button_toggled(3))
+        
+        # Connect the selectCamButton to the select_cam_button_clicked slot
+        self.view.selectCamButton.clicked.connect(self.select_cam_button_clicked)
+
+        # Connect the toggleStreamButton to the toggle_stream_button_clicked slot
+        self.view.toggleStreamButton.clicked.connect(self.toggle_stream_button_clicked)
 
         self.view.user_btn.clicked.connect(self.user_btn_clicked)
-        self.view.search_btn.clicked.connect(self.search_btn_clicked)
 
     @Slot()
-    def search_btn_clicked(self):
-        self.view.stackedWidget.setCurrentIndex(4)
-        search_text = self.view.search_input.text().strip()
-        if search_text:
-            self.view.search_string_label.setText(search_text)
+    def select_cam_button_clicked(self):
+        self.view.stackedWidget.setCurrentIndex(3)  # Navigate to the editPage
+        self.model.selected_ip = self.view.camTableWidget.item(
+            self.view.camTableWidget.currentRow(), 1).text()  # Retrieve the selected IP address
+
+        # Update the selectedCamLabel with the camera info
+        self.view.selectedCamLabel.setText(f"Selected Camera IP: {self.model.selected_ip}")
+        # Start the video stream
+        self.start_video_stream()
+
+    def start_video_stream(self):
+        if self.video_thread is not None:
+            self.video_thread.stop()
+            self.video_thread.wait()
+            self.video_thread = None
+
+        ip = self.model.selected_ip
+        self.video_thread = VideoThread(ip)
+        self.video_thread.frame_available.connect(self.display_frame)
+        self.video_thread.start()
+
+    @Slot()
+    def toggle_stream_button_clicked(self):
+        if self.video_thread is not None:
+            if self.video_thread.running:
+                self.stop_video_stream()
+            else:
+                self.start_video_stream()
+
+    def stop_video_stream(self):
+        if self.video_thread is not None:
+            self.video_thread.stop()
+            self.video_thread.wait()
+            self.video_thread = None
+
+        # Clear the camViewLabel
+        self.view.camViewLabel.clear()
+    
+    @Slot(np.ndarray)
+    def display_frame(self, frame):
+        # Convert the frame from BGR to RGB format
+        frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+
+        # Resize the frame to fit the camViewLabel
+        width = 800
+        height = 600
+        frame_resized = cv2.resize(frame_rgb, (width, height))
+
+        # Convert the frame to QImage format
+        image = QImage(frame_resized.data, frame_resized.shape[1],
+                    frame_resized.shape[0], QImage.Format_RGB888)
+
+        # Display the frame in the camViewLabel
+        pixmap = QPixmap.fromImage(image)
+        self.view.camViewLabel.setPixmap(pixmap)
 
     @Slot()
     def user_btn_clicked(self):
-        self.view.stackedWidget.setCurrentIndex(3)
+        self.view.stackedWidget.setCurrentIndex(2)
 
     @Slot(int)
     def on_button_toggled(self, index):
         if index >= 0 and index < self.view.stackedWidget.count():
             self.view.stackedWidget.setCurrentIndex(index)
             self.model.current_index = index
+
+class VideoThread(QThread):
+    frame_available = Signal(np.ndarray)
+
+    def __init__(self, ip):
+        super(VideoThread, self).__init__()
+        self.ip = ip
+        self.running = False
+
+    def run(self):
+        cap = cv2.VideoCapture(self.ip)
+        self.running = True
+
+        while self.running:
+            ret, frame = cap.read()
+            if ret:
+                self.frame_available.emit(frame)
+
+        cap.release()
+
+    def stop(self):
+        self.running = False
+
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -145,7 +225,7 @@ class MainWindow(QMainWindow):
                 print("Error deleting row:", e)
         else:
             QMessageBox.warning(self, "No Row Selected", "Please select a row to delete.")
-
+    
     def clear_input_fields(self):
         self.ui.camnameLineEdit.clear()
         self.ui.camipLineEdit.clear()
@@ -177,3 +257,4 @@ if __name__ == "__main__":
     window.show()
 
     sys.exit(app.exec())
+
