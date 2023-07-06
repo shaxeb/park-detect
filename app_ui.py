@@ -280,10 +280,10 @@ class Ui_MainWindow(object):
         self.editPage.setObjectName(u"editPage")
         self.gridLayout_2 = QGridLayout(self.editPage)
         self.gridLayout_2.setObjectName(u"gridLayout_2")
-        self.completePloygonButton = QPushButton(self.editPage)
-        self.completePloygonButton.setObjectName(u"completePloygonButton")
+        self.completePolygonButton = QPushButton(self.editPage)
+        self.completePolygonButton.setObjectName(u"completePolygonButton")
 
-        self.gridLayout_2.addWidget(self.completePloygonButton, 2, 1, 1, 1)
+        self.gridLayout_2.addWidget(self.completePolygonButton, 2, 1, 1, 1)
 
         self.deleteLastPolygonButton = QPushButton(self.editPage)
         self.deleteLastPolygonButton.setObjectName(u"deleteLastPolygonButton")
@@ -466,7 +466,7 @@ class Ui_MainWindow(object):
 #endif // QT_CONFIG(tooltip)
         self.selectCamButton.setText(QCoreApplication.translate("MainWindow", u"Select camera\n"
 " for Annotation", None))
-        self.completePloygonButton.setText(QCoreApplication.translate("MainWindow", u"Complete Polygon", None))
+        self.completePolygonButton.setText(QCoreApplication.translate("MainWindow", u"Complete Polygon", None))
         self.deleteLastPolygonButton.setText(QCoreApplication.translate("MainWindow", u"Delete Last Polygon", None))
         self.toggleStreamButton.setText(QCoreApplication.translate("MainWindow", u"Toggle Stream", None))
         self.removeAllPolygonsButton.setText(QCoreApplication.translate("MainWindow", u"Remove All Polygons", None))

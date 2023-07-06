@@ -62,7 +62,7 @@ class Controller:
 
         self.view.camViewLabel.mousePressEvent = self.mousePressEvent
 
-        self.view.completePloygonButton.clicked.connect(self.complete_polygon_button_clicked)
+        self.view.completePolygonButton.clicked.connect(self.complete_polygon_button_clicked)
 
         self.view.toggleStreamButton.clicked.connect(self.toggle_stream_button_clicked)  # Connect toggleStreamButton
 
@@ -78,9 +78,9 @@ class Controller:
     def complete_polygon_button_clicked(self):
         if self.model.stream_active and self.model.current_index == 1:  # Only allow completing the polygon when the stream is active and on the camPage
             ip = self.model.selected_ip
-            polygons = self.fetch_polygons_from_database(ip)
+            polygons, labels = self.fetch_polygons_from_database(ip)
             polygons.append(self.model.current_polygon_points)
-            self.update_polygons_in_database(ip, polygons)
+            self.update_polygons_in_database(ip, polygons, labels)
 
             self.model.current_polygon_points = []  # Clear the current polygon points
             self.display_frame()  # Update the frame after completing the polygon
@@ -269,6 +269,10 @@ class MainWindow(QMainWindow):
         cursor = self.conn.cursor()
         cursor.execute("UPDATE cameras SET polygons = ?, labels = ? WHERE ip = ?", (polygons_str, labels_str, ip))
         self.conn.commit()
+
+        # Optional: You can also update the model with the new polygons and labels if needed
+        self.model.polygons = polygons
+        self.model.labels = labels
 
     def on_table_cell_clicked(self, row, column):
         self.ui.camnameLineEdit.setText(self.ui.camTableWidget.item(row, 0).text())
