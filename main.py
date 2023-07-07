@@ -13,26 +13,6 @@ from PySide6.QtWidgets import (QApplication, QMainWindow, QPushButton,
 
 from app_ui import Ui_MainWindow
 
-def draw_polygons(frame, polygons, labels, current_polygon_points):
-    """Draws the stored polygons and labels on the frame"""
-    for i, polygon in enumerate(polygons):
-        points_array = np.array(polygon, np.int32).reshape((-1, 1, 2))
-        frame = cv2.polylines(
-            frame, [points_array], isClosed=True, color=(0, 255, 0), thickness=2)
-
-        # Check if i exists as a key and the value is not empty
-        if str(i) in labels and labels[str(i)]:
-            label = labels[str(i)]
-            label_position = (polygon[0][0], polygon[0][1] - 10)
-            cv2.putText(frame, label, label_position,
-                        cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2, cv2.LINE_AA)
-
-    if len(current_polygon_points) > 0:
-        current_polygon_array = np.array(current_polygon_points, np.int32).reshape((-1, 1, 2))
-        frame = cv2.polylines(
-            frame, [current_polygon_array], isClosed=False, color=(0, 255, 0), thickness=2)
-
-    return frame
 
 
 class Model:
@@ -60,21 +40,9 @@ class Controller:
 
         self.view.selectCamButton.clicked.connect(self.select_cam_button_clicked)
 
-        self.view.completePolygonButton.clicked.connect(self.complete_polygon_button_clicked)
-
         self.view.toggleStreamButton.clicked.connect(self.toggle_stream_button_clicked)  # Connect toggleStreamButton
 
         self.view.user_btn.clicked.connect(self.user_btn_clicked)
-
-    def complete_polygon_button_clicked(self):
-        if self.model.stream_active and self.model.current_index == 1:  # Only allow completing the polygon when the stream is active and on the camPage
-            ip = self.model.selected_ip
-            polygons = self.fetch_polygons_from_database(ip)
-            polygons.append(self.model.current_polygon_points)
-            self.update_polygons_in_database(ip, polygons)
-
-            self.model.current_polygon_points = []  # Clear the current polygon points
-            self.display_frame()  # Update the frame after completing the polygon
 
     @Slot()
     def select_cam_button_clicked(self):
@@ -121,13 +89,10 @@ class Controller:
         # Convert the frame from BGR to RGB format
         frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
 
-        # Draw polygons on the frame
-        frame_with_polygons = draw_polygons(frame_rgb, self.model.polygons, self.model.labels, self.model.current_polygon_points)
-
         # Resize the frame to fit the camViewLabel
         width = 800
         height = 600
-        frame_resized = cv2.resize(frame_with_polygons, (width, height))
+        frame_resized = cv2.resize(frame_rgb, (width, height))
 
         # Convert the frame to QImage format
         image = QImage(frame_resized.data, frame_resized.shape[1],
@@ -238,28 +203,6 @@ class MainWindow(QMainWindow):
         cursor.execute(
             "CREATE TABLE IF NOT EXISTS cameras (name TEXT UNIQUE, ip TEXT PRIMARY KEY UNIQUE, polygons TEXT, labels TEXT)")
 
-    def fetch_polygons_from_database(self, ip):
-        polygons = []
-        labels = {}
-
-        cursor = self.conn.cursor()
-        cursor.execute("SELECT polygons, labels FROM cameras WHERE ip = ?", (ip,))
-        result = cursor.fetchone()
-
-        if result:
-            polygons_str, labels_str = result
-            polygons = json.loads(polygons_str)
-            labels = json.loads(labels_str)
-
-        return polygons, labels
-
-    def update_polygons_in_database(self, ip, polygons, labels):
-        polygons_str = json.dumps(polygons)
-        labels_str = json.dumps(labels)
-
-        cursor = self.conn.cursor()
-        cursor.execute("UPDATE cameras SET polygons = ?, labels = ? WHERE ip = ?", (polygons_str, labels_str, ip))
-        self.conn.commit()
 
     def on_table_cell_clicked(self, row, column):
         self.ui.camnameLineEdit.setText(self.ui.camTableWidget.item(row, 0).text())
