@@ -60,20 +60,11 @@ class Controller:
 
         self.view.selectCamButton.clicked.connect(self.select_cam_button_clicked)
 
-        self.view.camViewLabel.mousePressEvent = self.mousePressEvent
-
         self.view.completePolygonButton.clicked.connect(self.complete_polygon_button_clicked)
 
         self.view.toggleStreamButton.clicked.connect(self.toggle_stream_button_clicked)  # Connect toggleStreamButton
 
         self.view.user_btn.clicked.connect(self.user_btn_clicked)
-
-    def mousePressEvent(self, event):
-        if self.model.stream_active and self.model.current_index == 1:  # Only allow drawing when the stream is active and on the camPage
-            if event.button() == Qt.LeftButton:
-                point = (event.x(), event.y())
-                self.model.current_polygon_points.append(point)
-                self.display_frame()  # Update the frame with the new polygon points
 
     def complete_polygon_button_clicked(self):
         if self.model.stream_active and self.model.current_index == 1:  # Only allow completing the polygon when the stream is active and on the camPage
