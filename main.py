@@ -3,6 +3,7 @@ import json
 import cv2
 import numpy as np
 import sys
+import time
 
 from PySide6 import QtCore, QtGui
 from PySide6.QtGui import QImage, QPixmap, Qt
@@ -46,12 +47,12 @@ class Controller:
 
     @Slot()
     def select_cam_button_clicked(self):
-        self.view.stackedWidget.setCurrentIndex(2)  # Navigate to the editPage
-        self.model.selected_ip = self.view.camTableWidget.item(
-            self.view.camTableWidget.currentRow(), 1).text()  # Retrieve the selected IP address
-
-        self.view.selectedCamLabel.setText(f"Selected Camera IP: {self.model.selected_ip}")
-        self.start_video_stream()
+        self.view.stackedWidget.setCurrentIndex(2)
+        selected_ip_item = self.view.camTableWidget.item(self.view.camTableWidget.currentRow(), 1)
+        if selected_ip_item:
+            self.model.selected_ip = selected_ip_item.text()
+            self.view.selectedCamLabel.setText(f"Selected Camera IP: {self.model.selected_ip}")
+            self.start_video_stream()
 
     def start_video_stream(self):
         if self.video_thread is not None:
@@ -83,25 +84,21 @@ class Controller:
             self.video_thread = None
 
         self.view.camViewLabel.clear()
-    
     @Slot(np.ndarray)
     def display_frame(self, frame):
         # Convert the frame from BGR to RGB format
         frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
 
         # Resize the frame to fit the camViewLabel
-        width = 800
-        height = 600
+        width, height = 800, 600
         frame_resized = cv2.resize(frame_rgb, (width, height))
 
         # Convert the frame to QImage format
-        image = QImage(frame_resized.data, frame_resized.shape[1],
-                    frame_resized.shape[0], QImage.Format_RGB888)
+        image = QImage(frame_resized.data, frame_resized.shape[1], frame_resized.shape[0], QImage.Format_RGB888)
 
         # Display the frame in the camViewLabel
         pixmap = QPixmap.fromImage(image)
         self.view.camViewLabel.setPixmap(pixmap)
-
 
     @Slot()
     def user_btn_clicked(self):
@@ -133,18 +130,11 @@ class VideoThread(QThread):
         while self.running:
             ret, frame = cap.read()
             if ret:
-                self.mutex.lock()
-                if self.paused:
-                    self.condition.wait(self.mutex)
-                self.mutex.unlock()
-
                 self.frame_available.emit(frame)
 
-            # Allow the event loop to process events
             QApplication.processEvents()
 
-            # Pause the thread for a short interval
-            QTimer.singleShot(1, self.dummy)  # Use a short interval to minimize delay
+            time.sleep(0.001)  # Pause the thread for a short interval
 
         cap.release()
 
@@ -205,19 +195,25 @@ class MainWindow(QMainWindow):
 
 
     def on_table_cell_clicked(self, row, column):
-        self.ui.camnameLineEdit.setText(self.ui.camTableWidget.item(row, 0).text())
-        self.ui.camipLineEdit.setText(self.ui.camTableWidget.item(row, 1).text())
+        table_widget = self.ui.camTableWidget
+        cam_name = table_widget.item(row, 0).text()
+        cam_ip = table_widget.item(row, 1).text()
+        self.ui.camnameLineEdit.setText(cam_name)
+        self.ui.camipLineEdit.setText(cam_ip)
 
     def load_table_data(self):
         cursor = self.conn.cursor()
         cursor.execute("SELECT name, ip FROM cameras")
         data = cursor.fetchall()
 
-        self.ui.camTableWidget.setRowCount(len(data))
-        self.ui.camTableWidget.setColumnCount(2)
+        num_rows = len(data)
+        num_cols = 2
+
+        self.ui.camTableWidget.setRowCount(num_rows)
+        self.ui.camTableWidget.setColumnCount(num_cols)
 
         for row, items in enumerate(data):
-            for col, item in enumerate(items[:2]):
+            for col, item in enumerate(items[:num_cols]):
                 table_item = QTableWidgetItem(str(item))
                 self.ui.camTableWidget.setItem(row, col, table_item)
 
@@ -250,14 +246,10 @@ class MainWindow(QMainWindow):
         selected_row = self.ui.camTableWidget.currentRow()
         if selected_row >= 0:
             ip = self.ui.camTableWidget.item(selected_row, 1).text()
-            try:
-                cursor = self.conn.cursor()
-                cursor.execute("DELETE FROM cameras WHERE ip = ?", (ip,))
-                self.conn.commit()
-                self.load_table_data()
-                self.clear_input_fields()
-            except Exception as e:
-                print("Error deleting row:", e)
+            self.conn.execute("DELETE FROM cameras WHERE ip = ?", (ip,))
+            self.conn.commit()
+            self.load_table_data()
+            self.clear_input_fields()
         else:
             QMessageBox.warning(self, "No Row Selected", "Please select a row to delete.")
     
@@ -267,8 +259,8 @@ class MainWindow(QMainWindow):
 
     @Slot(int)
     def on_stackedWidget_currentChanged(self, index):
-        btn_list = self.ui.icon_only_widget.findChildren(QPushButton) \
-                   + self.ui.full_menu_widget.findChildren(QPushButton)
+        btn_list = self.ui.icon_only_widget.findChildren(QPushButton)
+        btn_list += self.ui.full_menu_widget.findChildren(QPushButton)
 
         for btn in btn_list:
             if index in [3, 4]:
