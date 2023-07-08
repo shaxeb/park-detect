@@ -116,6 +116,70 @@ class Ui_MainWindow(object):
 
         self.gridLayout.addWidget(self.icon_only_widget, 0, 0, 1, 1)
 
+        self.full_menu_widget = QWidget(self.centralwidget)
+        self.full_menu_widget.setObjectName(u"full_menu_widget")
+        self.full_menu_widget.setMinimumSize(QSize(191, 0))
+        self.verticalLayout_4 = QVBoxLayout(self.full_menu_widget)
+        self.verticalLayout_4.setObjectName(u"verticalLayout_4")
+        self.verticalLayout_4.setContentsMargins(0, 0, 0, 0)
+        self.logo_label_2 = QLabel(self.full_menu_widget)
+        self.logo_label_2.setObjectName(u"logo_label_2")
+        self.logo_label_2.setMaximumSize(QSize(193, 50))
+        self.logo_label_2.setPixmap(QPixmap(u":/media/media/wiselens-logo-full.png"))
+        self.logo_label_2.setScaledContents(True)
+
+        self.verticalLayout_4.addWidget(self.logo_label_2)
+
+        self.verticalLayout_2 = QVBoxLayout()
+        self.verticalLayout_2.setSpacing(0)
+        self.verticalLayout_2.setObjectName(u"verticalLayout_2")
+        self.home_btn_2 = QPushButton(self.full_menu_widget)
+        self.home_btn_2.setObjectName(u"home_btn_2")
+        self.home_btn_2.setIcon(icon)
+        self.home_btn_2.setIconSize(QSize(30, 30))
+        self.home_btn_2.setCheckable(True)
+        self.home_btn_2.setAutoExclusive(True)
+
+        self.verticalLayout_2.addWidget(self.home_btn_2)
+
+        self.cam_btn_2 = QPushButton(self.full_menu_widget)
+        self.cam_btn_2.setObjectName(u"cam_btn_2")
+        self.cam_btn_2.setIcon(icon1)
+        self.cam_btn_2.setIconSize(QSize(30, 30))
+        self.cam_btn_2.setCheckable(True)
+        self.cam_btn_2.setAutoExclusive(True)
+
+        self.verticalLayout_2.addWidget(self.cam_btn_2)
+
+        self.edit_btn_2 = QPushButton(self.full_menu_widget)
+        self.edit_btn_2.setObjectName(u"edit_btn_2")
+        self.edit_btn_2.setMaximumSize(QSize(16777215, 50))
+        self.edit_btn_2.setIcon(icon2)
+        self.edit_btn_2.setIconSize(QSize(24, 24))
+        self.edit_btn_2.setCheckable(True)
+        self.edit_btn_2.setAutoExclusive(True)
+
+        self.verticalLayout_2.addWidget(self.edit_btn_2)
+
+
+        self.verticalLayout_4.addLayout(self.verticalLayout_2)
+
+        self.verticalSpacer_2 = QSpacerItem(20, 291, QSizePolicy.Minimum, QSizePolicy.Expanding)
+
+        self.verticalLayout_4.addItem(self.verticalSpacer_2)
+
+        self.exit_btn_2 = QPushButton(self.full_menu_widget)
+        self.exit_btn_2.setObjectName(u"exit_btn_2")
+        self.exit_btn_2.setIcon(icon3)
+        self.exit_btn_2.setIconSize(QSize(24, 24))
+        self.exit_btn_2.setCheckable(True)
+        self.exit_btn_2.setAutoExclusive(True)
+
+        self.verticalLayout_4.addWidget(self.exit_btn_2)
+
+
+        self.gridLayout.addWidget(self.full_menu_widget, 0, 1, 1, 1)
+
         self.widget = QWidget(self.centralwidget)
         self.widget.setObjectName(u"widget")
         self.verticalLayout_5 = QVBoxLayout(self.widget)
@@ -280,21 +344,30 @@ class Ui_MainWindow(object):
         self.editPage.setObjectName(u"editPage")
         self.gridLayout_2 = QGridLayout(self.editPage)
         self.gridLayout_2.setObjectName(u"gridLayout_2")
-        self.completePolygonButton = QPushButton(self.editPage)
-        self.completePolygonButton.setObjectName(u"completePolygonButton")
+        self.aspectRatioComboBox = QComboBox(self.editPage)
+        self.aspectRatioComboBox.addItem("")
+        self.aspectRatioComboBox.addItem("")
+        self.aspectRatioComboBox.setObjectName(u"aspectRatioComboBox")
+        self.aspectRatioComboBox.setEditable(False)
 
-        self.gridLayout_2.addWidget(self.completePolygonButton, 2, 1, 1, 1)
+        self.gridLayout_2.addWidget(self.aspectRatioComboBox, 1, 2, 1, 1)
+
+        self.completeButton = QPushButton(self.editPage)
+        self.completeButton.setObjectName(u"completeButton")
+
+        self.gridLayout_2.addWidget(self.completeButton, 2, 1, 1, 1)
+
+        self.toggleStreamButton = QPushButton(self.editPage)
+        self.toggleStreamButton.setObjectName(u"toggleStreamButton")
+        self.toggleStreamButton.setCheckable(True)
+        self.toggleStreamButton.setChecked(True)
+
+        self.gridLayout_2.addWidget(self.toggleStreamButton, 2, 0, 1, 1)
 
         self.deleteLastPolygonButton = QPushButton(self.editPage)
         self.deleteLastPolygonButton.setObjectName(u"deleteLastPolygonButton")
 
         self.gridLayout_2.addWidget(self.deleteLastPolygonButton, 2, 2, 1, 1)
-
-        self.toggleStreamButton = QPushButton(self.editPage)
-        self.toggleStreamButton.setObjectName(u"toggleStreamButton")
-        self.toggleStreamButton.setCheckable(True)
-
-        self.gridLayout_2.addWidget(self.toggleStreamButton, 2, 0, 1, 1)
 
         self.removeAllPolygonsButton = QPushButton(self.editPage)
         self.removeAllPolygonsButton.setObjectName(u"removeAllPolygonsButton")
@@ -312,14 +385,6 @@ class Ui_MainWindow(object):
         self.camViewLabel.setMaximumSize(QSize(1280, 720))
 
         self.gridLayout_2.addWidget(self.camViewLabel, 0, 0, 1, 4)
-
-        self.aspectRatioComboBox = QComboBox(self.editPage)
-        self.aspectRatioComboBox.addItem("")
-        self.aspectRatioComboBox.addItem("")
-        self.aspectRatioComboBox.setObjectName(u"aspectRatioComboBox")
-        self.aspectRatioComboBox.setEditable(False)
-
-        self.gridLayout_2.addWidget(self.aspectRatioComboBox, 1, 2, 1, 1)
 
         self.stackedWidget.addWidget(self.editPage)
         self.userPage_2 = QWidget()
@@ -340,70 +405,6 @@ class Ui_MainWindow(object):
         self.header_widget.raise_()
 
         self.gridLayout.addWidget(self.widget, 0, 2, 1, 1)
-
-        self.full_menu_widget = QWidget(self.centralwidget)
-        self.full_menu_widget.setObjectName(u"full_menu_widget")
-        self.full_menu_widget.setMinimumSize(QSize(191, 0))
-        self.verticalLayout_4 = QVBoxLayout(self.full_menu_widget)
-        self.verticalLayout_4.setObjectName(u"verticalLayout_4")
-        self.verticalLayout_4.setContentsMargins(0, 0, 0, 0)
-        self.logo_label_2 = QLabel(self.full_menu_widget)
-        self.logo_label_2.setObjectName(u"logo_label_2")
-        self.logo_label_2.setMaximumSize(QSize(193, 50))
-        self.logo_label_2.setPixmap(QPixmap(u":/media/media/wiselens-logo-full.png"))
-        self.logo_label_2.setScaledContents(True)
-
-        self.verticalLayout_4.addWidget(self.logo_label_2)
-
-        self.verticalLayout_2 = QVBoxLayout()
-        self.verticalLayout_2.setSpacing(0)
-        self.verticalLayout_2.setObjectName(u"verticalLayout_2")
-        self.home_btn_2 = QPushButton(self.full_menu_widget)
-        self.home_btn_2.setObjectName(u"home_btn_2")
-        self.home_btn_2.setIcon(icon)
-        self.home_btn_2.setIconSize(QSize(30, 30))
-        self.home_btn_2.setCheckable(True)
-        self.home_btn_2.setAutoExclusive(True)
-
-        self.verticalLayout_2.addWidget(self.home_btn_2)
-
-        self.cam_btn_2 = QPushButton(self.full_menu_widget)
-        self.cam_btn_2.setObjectName(u"cam_btn_2")
-        self.cam_btn_2.setIcon(icon1)
-        self.cam_btn_2.setIconSize(QSize(30, 30))
-        self.cam_btn_2.setCheckable(True)
-        self.cam_btn_2.setAutoExclusive(True)
-
-        self.verticalLayout_2.addWidget(self.cam_btn_2)
-
-        self.edit_btn_2 = QPushButton(self.full_menu_widget)
-        self.edit_btn_2.setObjectName(u"edit_btn_2")
-        self.edit_btn_2.setMaximumSize(QSize(16777215, 50))
-        self.edit_btn_2.setIcon(icon2)
-        self.edit_btn_2.setIconSize(QSize(24, 24))
-        self.edit_btn_2.setCheckable(True)
-        self.edit_btn_2.setAutoExclusive(True)
-
-        self.verticalLayout_2.addWidget(self.edit_btn_2)
-
-
-        self.verticalLayout_4.addLayout(self.verticalLayout_2)
-
-        self.verticalSpacer_2 = QSpacerItem(20, 291, QSizePolicy.Minimum, QSizePolicy.Expanding)
-
-        self.verticalLayout_4.addItem(self.verticalSpacer_2)
-
-        self.exit_btn_2 = QPushButton(self.full_menu_widget)
-        self.exit_btn_2.setObjectName(u"exit_btn_2")
-        self.exit_btn_2.setIcon(icon3)
-        self.exit_btn_2.setIconSize(QSize(24, 24))
-        self.exit_btn_2.setCheckable(True)
-        self.exit_btn_2.setAutoExclusive(True)
-
-        self.verticalLayout_4.addWidget(self.exit_btn_2)
-
-
-        self.gridLayout.addWidget(self.full_menu_widget, 0, 1, 1, 1)
 
         MainWindow.setCentralWidget(self.centralwidget)
 
@@ -432,6 +433,11 @@ class Ui_MainWindow(object):
         self.cam_btn_1.setText("")
         self.edit_btn_1.setText("")
         self.exit_btn_1.setText("")
+        self.logo_label_2.setText("")
+        self.home_btn_2.setText(QCoreApplication.translate("MainWindow", u" Home", None))
+        self.cam_btn_2.setText(QCoreApplication.translate("MainWindow", u" Add Camera", None))
+        self.edit_btn_2.setText(QCoreApplication.translate("MainWindow", u" Annotate Camera", None))
+        self.exit_btn_2.setText(QCoreApplication.translate("MainWindow", u" Exit", None))
         self.menu_btn.setText("")
         self.user_btn.setText("")
         self.label_7.setText(QCoreApplication.translate("MainWindow", u"<html><head/><body><p align=\"center\">This is a 7 day free trail.</p><p align=\"center\">Click on the User button on the top left to register a license.</p></body></html>", None))
@@ -466,12 +472,6 @@ class Ui_MainWindow(object):
 #endif // QT_CONFIG(tooltip)
         self.selectCamButton.setText(QCoreApplication.translate("MainWindow", u"Select camera\n"
 " for Annotation", None))
-        self.completePolygonButton.setText(QCoreApplication.translate("MainWindow", u"Complete Polygon", None))
-        self.deleteLastPolygonButton.setText(QCoreApplication.translate("MainWindow", u"Delete Last Polygon", None))
-        self.toggleStreamButton.setText(QCoreApplication.translate("MainWindow", u"Toggle Stream", None))
-        self.removeAllPolygonsButton.setText(QCoreApplication.translate("MainWindow", u"Remove All Polygons", None))
-        self.selectedCamLabel.setText(QCoreApplication.translate("MainWindow", u"Selected Camera: ", None))
-        self.camViewLabel.setText("")
         self.aspectRatioComboBox.setItemText(0, QCoreApplication.translate("MainWindow", u"4:3", None))
         self.aspectRatioComboBox.setItemText(1, QCoreApplication.translate("MainWindow", u"16:9", None))
 
@@ -479,11 +479,12 @@ class Ui_MainWindow(object):
         self.aspectRatioComboBox.setToolTip(QCoreApplication.translate("MainWindow", u"<html><head/><body><p>Select aspect ratio for your camera</p></body></html>", None))
 #endif // QT_CONFIG(tooltip)
         self.aspectRatioComboBox.setPlaceholderText(QCoreApplication.translate("MainWindow", u"Select Aspect Ratio", None))
+        self.completeButton.setText(QCoreApplication.translate("MainWindow", u"Complete Polygon", None))
+        self.toggleStreamButton.setText(QCoreApplication.translate("MainWindow", u"Toggle Stream", None))
+        self.deleteLastPolygonButton.setText(QCoreApplication.translate("MainWindow", u"Delete Last Polygon", None))
+        self.removeAllPolygonsButton.setText(QCoreApplication.translate("MainWindow", u"Remove All Polygons", None))
+        self.selectedCamLabel.setText(QCoreApplication.translate("MainWindow", u"Selected Camera: ", None))
+        self.camViewLabel.setText("")
         self.label_9.setText(QCoreApplication.translate("MainWindow", u"<html><head/><body><p align=\"center\">This page is for user authentication</p></body></html>", None))
-        self.logo_label_2.setText("")
-        self.home_btn_2.setText(QCoreApplication.translate("MainWindow", u" Home", None))
-        self.cam_btn_2.setText(QCoreApplication.translate("MainWindow", u" Add Camera", None))
-        self.edit_btn_2.setText(QCoreApplication.translate("MainWindow", u" Annotate Camera", None))
-        self.exit_btn_2.setText(QCoreApplication.translate("MainWindow", u" Exit", None))
     # retranslateUi
 
