@@ -5,9 +5,8 @@ import numpy as np
 import sys
 import time
 
-from PySide6 import QtCore, QtGui
 from PySide6.QtGui import QImage, QPixmap, Qt
-from PySide6.QtCore import Slot, QObject, QThread, Signal, QMutex, QWaitCondition, QTimer
+from PySide6.QtCore import Slot, QThread, Signal, QMutex, QWaitCondition
 from PySide6.QtSql import QSqlDatabase, QSqlQueryModel, QSqlQuery
 from PySide6.QtWidgets import (QApplication, QMainWindow, QPushButton,
                                QStackedWidget, QTableWidget, QTableWidgetItem, QWidget, QMessageBox, QLabel)
