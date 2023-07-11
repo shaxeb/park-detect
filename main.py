@@ -54,11 +54,8 @@ class Controller:
 
     @Slot()
     def complete_button_clicked(self):
-        if len(self.model.current_polygon_points) > 1:
-            self.view.drawingWidget.add_polygon(self.model.current_polygon_points)
-            self.view.drawingWidget.repaint()  # Force the widget to repaint
-            self.model.polygons.append(self.model.current_polygon_points)
-            self.model.current_polygon_points = []
+        if self.view.drawingWidget.current_polygon:
+            self.view.drawingWidget.complete_polygon()
 
     @Slot()
     def select_cam_button_clicked(self):
