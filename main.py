@@ -1,15 +1,16 @@
-import sqlite3
 import json
-import cv2
-import numpy as np
+import sqlite3
 import sys
 import time
 
-from PySide6.QtGui import QImage, QPixmap, Qt, QPolygonF
-from PySide6.QtCore import Slot, QThread, Signal, QMutex, QWaitCondition
-from PySide6.QtSql import QSqlDatabase, QSqlQueryModel, QSqlQuery
-from PySide6.QtWidgets import (QApplication, QMainWindow, QPushButton,
-                               QStackedWidget, QTableWidget, QTableWidgetItem, QWidget, QMessageBox, QLabel)
+import cv2
+import numpy as np
+from PySide6.QtCore import QMutex, QThread, QWaitCondition, Signal, Slot
+from PySide6.QtGui import QImage, QPixmap, Qt
+from PySide6.QtSql import QSqlDatabase, QSqlQuery, QSqlQueryModel
+from PySide6.QtWidgets import (QApplication, QInputDialog, QLineEdit,
+                               QMainWindow, QMessageBox, QPushButton,
+                               QStackedWidget, QTableWidget, QTableWidgetItem)
 
 from app_ui import Ui_MainWindow
 from drawingwidget import DrawingWidget
@@ -49,13 +50,6 @@ class Controller:
         # Create a DrawingWidget as a child of the camViewLabel
         self.view.drawingWidget = DrawingWidget(self.view.camViewLabel)
         self.view.drawingWidget.setGeometry(self.view.camViewLabel.rect())
-
-        self.view.completeButton.clicked.connect(self.complete_button_clicked) 
-
-    @Slot()
-    def complete_button_clicked(self):
-        if self.view.drawingWidget.current_polygon:
-            self.view.drawingWidget.complete_polygon()
 
     @Slot()
     def select_cam_button_clicked(self):
@@ -212,20 +206,12 @@ class MainWindow(QMainWindow):
             "CREATE TABLE IF NOT EXISTS Polygons (id INTEGER PRIMARY KEY AUTOINCREMENT, camera_id INTEGER NOT NULL, label TEXT NOT NULL, coordinates TEXT NOT NULL, FOREIGN KEY (camera_id) REFERENCES Cameras (id))"
         )
 
-
         self.model.current_polygon_points = []  # Remove this line
 
         self.ui.drawingWidget = DrawingWidget(self.ui.camViewLabel)
         self.ui.drawingWidget.setGeometry(self.ui.camViewLabel.geometry())
-        
-        self.ui.completeButton.clicked.connect(self.complete_button_clicked)
-
-    @Slot()
-    def complete_button_clicked(self):
-        if self.model.current_polygon_points:
-            self.model.polygons.append(self.model.current_polygon_points)
-            self.model.current_polygon_points = []
-            self.ui.drawingWidget.update()
+        self.ui.completeButton.clicked.connect(
+            self.ui.drawingWidget.complete_polygon)
 
     def mousePressEvent(self, event):
         if event.button() == Qt.LeftButton:
@@ -233,7 +219,7 @@ class MainWindow(QMainWindow):
                 self.model.current_polygon_points.append(
                     (event.pos().x(), event.pos().y()))
                 self.ui.drawingWidget.update()
-    
+
     def clear_input_fields(self):
         self.ui.camnameLineEdit.clear()
         self.ui.camipLineEdit.clear()
@@ -319,34 +305,39 @@ class MainWindow(QMainWindow):
         if selected_row >= 0:
             ip = self.ui.camTableWidget.item(selected_row, 1).text()
             cursor = self.conn.cursor()
-            cursor.execute("SELECT id FROM Cameras WHERE ip_address = ?", (ip,))
+            cursor.execute(
+                "SELECT id FROM Cameras WHERE ip_address = ?", (ip,))
             camera_id = cursor.fetchone()[0]
 
-            cursor.execute("DELETE FROM Polygons WHERE camera_id = ?", (camera_id,))
+            cursor.execute(
+                "DELETE FROM Polygons WHERE camera_id = ?", (camera_id,))
             cursor.execute("DELETE FROM Cameras WHERE ip_address = ?", (ip,))
             self.conn.commit()
             self.load_table_data()
             self.clear_input_fields()
         else:
             QMessageBox.warning(self, "No Row Selected", "Please select a row to delete.")\
-    
+
+
     def get_polygons(self):
         selected_row = self.ui.camTableWidget.currentRow()
         if selected_row >= 0:
             ip = self.ui.camTableWidget.item(selected_row, 1).text()
             cursor = self.conn.cursor()
-            cursor.execute("SELECT id FROM Cameras WHERE ip_address = ?", (ip,))
+            cursor.execute(
+                "SELECT id FROM Cameras WHERE ip_address = ?", (ip,))
             camera_id = cursor.fetchone()[0]
 
-            cursor.execute("SELECT label, coordinates FROM Polygons WHERE camera_id = ?", (camera_id,))
+            cursor.execute(
+                "SELECT label, coordinates FROM Polygons WHERE camera_id = ?", (camera_id,))
             polygons = cursor.fetchall()
 
             # Process the fetched polygons as needed
 
             print(polygons)
         else:
-            QMessageBox.warning(self, "No Row Selected", "Please select a camera.")
-
+            QMessageBox.warning(self, "No Row Selected",
+                                "Please select a camera.")
 
     def clear_input_fields(self):
         self.ui.camnameLineEdit.clear()
