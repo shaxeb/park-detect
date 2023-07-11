@@ -723,14 +723,14 @@
             </widget>
            </item>
            <item row="2" column="2">
-            <widget class="QPushButton" name="deleteLastPolygonButton">
+            <widget class="QPushButton" name="deleteLastButton">
              <property name="text">
               <string>Delete Last Polygon</string>
              </property>
             </widget>
            </item>
            <item row="2" column="3">
-            <widget class="QPushButton" name="removeAllPolygonsButton">
+            <widget class="QPushButton" name="removeAllButton">
              <property name="text">
               <string>Remove All Polygons</string>
              </property>

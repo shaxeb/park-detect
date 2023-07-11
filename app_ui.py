@@ -364,15 +364,15 @@ class Ui_MainWindow(object):
 
         self.gridLayout_2.addWidget(self.toggleStreamButton, 2, 0, 1, 1)
 
-        self.deleteLastPolygonButton = QPushButton(self.editPage)
-        self.deleteLastPolygonButton.setObjectName(u"deleteLastPolygonButton")
+        self.deleteLastButton = QPushButton(self.editPage)
+        self.deleteLastButton.setObjectName(u"deleteLastButton")
 
-        self.gridLayout_2.addWidget(self.deleteLastPolygonButton, 2, 2, 1, 1)
+        self.gridLayout_2.addWidget(self.deleteLastButton, 2, 2, 1, 1)
 
-        self.removeAllPolygonsButton = QPushButton(self.editPage)
-        self.removeAllPolygonsButton.setObjectName(u"removeAllPolygonsButton")
+        self.removeAllButton = QPushButton(self.editPage)
+        self.removeAllButton.setObjectName(u"removeAllButton")
 
-        self.gridLayout_2.addWidget(self.removeAllPolygonsButton, 2, 3, 1, 1)
+        self.gridLayout_2.addWidget(self.removeAllButton, 2, 3, 1, 1)
 
         self.selectedCamLabel = QLabel(self.editPage)
         self.selectedCamLabel.setObjectName(u"selectedCamLabel")
@@ -481,8 +481,8 @@ class Ui_MainWindow(object):
         self.aspectRatioComboBox.setPlaceholderText(QCoreApplication.translate("MainWindow", u"Select Aspect Ratio", None))
         self.completeButton.setText(QCoreApplication.translate("MainWindow", u"Complete Polygon", None))
         self.toggleStreamButton.setText(QCoreApplication.translate("MainWindow", u"Toggle Stream", None))
-        self.deleteLastPolygonButton.setText(QCoreApplication.translate("MainWindow", u"Delete Last Polygon", None))
-        self.removeAllPolygonsButton.setText(QCoreApplication.translate("MainWindow", u"Remove All Polygons", None))
+        self.deleteLastButton.setText(QCoreApplication.translate("MainWindow", u"Delete Last Polygon", None))
+        self.removeAllButton.setText(QCoreApplication.translate("MainWindow", u"Remove All Polygons", None))
         self.selectedCamLabel.setText(QCoreApplication.translate("MainWindow", u"Selected Camera: ", None))
         self.camViewLabel.setText("")
         self.label_9.setText(QCoreApplication.translate("MainWindow", u"<html><head/><body><p align=\"center\">This page is for user authentication</p></body></html>", None))

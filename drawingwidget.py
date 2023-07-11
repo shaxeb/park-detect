@@ -1,9 +1,10 @@
-from PySide6.QtGui import QPainter, QPen, QPolygonF, QBrush, QFont
-from PySide6.QtCore import Qt, QPointF
-from PySide6.QtWidgets import QWidget, QInputDialog, QApplication, QMessageBox
-from shapely.geometry import Polygon, Point, LineString
-from shapely.affinity import translate
-from shapely import STRtree
+import json
+import sqlite3
+
+from PySide6.QtCore import QPointF, Qt
+from PySide6.QtGui import QBrush, QFont, QPainter, QPen, QPolygonF
+from PySide6.QtWidgets import QApplication, QInputDialog, QMessageBox, QWidget
+from shapely.geometry import Polygon, LineString
 from shapely.validation import explain_validity
 
 
@@ -13,6 +14,14 @@ class DrawingWidget(QWidget):
         self.current_polygon = None
         self.polygons = []
         self.labels = {}
+        self.camera_id = None
+        self.conn = sqlite3.connect("camera_database.db")
+        self.cursor = self.conn.cursor()
+
+    def resizeEvent(self, event):
+        # Resize the drawing widget to match the size of its parent
+        self.setGeometry(self.parent().rect())
+        self.update()
 
     def mousePressEvent(self, event):
         if event.button() == Qt.LeftButton:
@@ -20,6 +29,16 @@ class DrawingWidget(QWidget):
                 self.current_polygon = QPolygonF()
             self.current_polygon.append(event.pos())
             self.update()
+        elif event.button() == Qt.RightButton:
+            if not self.polygons:
+                return
+
+            # Check if the right-click position is inside any polygon
+            for i, polygon in enumerate(self.polygons):
+                if polygon.containsPoint(event.pos(), Qt.OddEvenFill):
+                    self.remove_polygon(i)
+                    self.update()
+                    break
 
     def paintEvent(self, event):
         painter = QPainter(self)
@@ -53,16 +72,30 @@ class DrawingWidget(QWidget):
         y_min = min(point.y() for point in polygon)
         return QPointF(x_min, y_min)
 
-    def complete_polygon(self):
-        if self.current_polygon:
-            # Convert the current polygon to Shapely's Polygon object
-            points = [(point.x(), point.y()) for point in self.current_polygon]
-            polygon = Polygon(points)
+    def save_polygon_data(self):
+        polygon_data = []
+        for i, polygon in enumerate(self.polygons):
+            coordinates = [(point.x(), point.y()) for point in polygon]
+            label = self.labels.get(i, "")
+            polygon_data.append({"coordinates": coordinates, "label": label})
 
-            # Check if the polygon is self-intersecting
-            if polygon.is_valid and polygon.is_simple:
-                self.polygons.append(self.current_polygon)
-                self.current_polygon = None
+        polygon_data_json = json.dumps(polygon_data)
+
+        self.cursor.execute(
+            "UPDATE Cameras SET polygon_data = ? WHERE id = ?", (polygon_data_json, self.camera_id)
+        )
+        self.conn.commit()
+
+    def complete_polygon(self):
+        if not self.current_polygon.isEmpty():
+            if self.has_self_intersection():
+                QMessageBox.warning(
+                    self, "Invalid Polygon", "Please redraw the polygon with non-intersecting lines."
+                )
+                self.current_polygon = QPolygonF()  # Clear the current polygon
+            else:
+                self.polygons.append(QPolygonF(self.current_polygon))
+                self.current_polygon = QPolygonF()
                 self.update()
 
                 # Prompt the user for a label
@@ -72,42 +105,87 @@ class DrawingWidget(QWidget):
                 if ok and label:
                     polygon_index = len(self.polygons) - 1
                     self.labels[polygon_index] = label
-            else:
-                QMessageBox.warning(
-                    self,
-                    "Invalid Polygon",
-                    "Please redraw the polygon with non-intersecting lines.",
-                )
-                self.current_polygon = None  # Clear the current polygon
-                self.update()
+
+                    # Save the polygon data to the database
+                    self.save_polygon_data()
+
+    def remove_polygon(self, index):
+        if index in self.labels:
+            del self.labels[index]
+        if index < len(self.polygons):
+            del self.polygons[index]
+
+            # Save the updated polygon data to the database
+            self.save_polygon_data()
+
+    def remove_all_polygons(self):
+        self.polygons = []
+        self.labels = {}
+        self.update()
+
+        # Remove the polygon data from the database
+        self.cursor.execute(
+            "UPDATE Cameras SET polygon_data = NULL WHERE id = ?", (self.camera_id,)
+        )
+        self.conn.commit()
+
+    def set_camera_id(self, camera_id):
+        self.camera_id = camera_id
+        self.load_polygon_data()
 
     def has_self_intersection(self):
-        # Get the points of the current polygon
-        points = [(point.x(), point.y()) for point in self.current_polygon]
+        if not self.current_polygon:
+            return False
 
-        # Create the polygon object
+        # Convert the current polygon to Shapely's Polygon object
+        points = [(point.x(), point.y()) for point in self.current_polygon]
         polygon = Polygon(points)
 
-        # Get the polygon segments
-        segments = []
-        for i in range(len(points) - 1):
-            segment = LineString([points[i], points[i + 1]])
-            segments.append(segment)
-        segment = LineString([points[-1], points[0]])
-        segments.append(segment)
+        # Check if the polygon is valid and simple (non-self-intersecting)
+        if not polygon.is_valid or not polygon.is_simple:
+            explanation = explain_validity(polygon)
+            print(f"Warning: Invalid Polygon - {explanation}")
+            return True
 
-        # Build the STRtree index
-        tree = STRtree(segments)
-
-        # Check for intersections
-        for i in range(len(segments)):
-            segment = segments[i]
-            intersection_candidates = tree.query(segment)
-
-            # Check if any intersection point lies on another segment
-            for candidate in intersection_candidates:
-                if candidate != segment and candidate != segments[(i + 1) % len(segments)]:
-                    if segment.intersects(candidate):
-                        return True
+        # Check for self-intersections by comparing each pair of edges
+        edges = polygon.exterior.coords[:-1]
+        num_edges = len(edges)
+        for i in range(num_edges - 1):
+            edge1 = LineString([edges[i], edges[i + 1]])
+            for j in range(i + 2, num_edges - 1):
+                edge2 = LineString([edges[j], edges[j + 1]])
+                if edge1.intersects(edge2):
+                    return True
 
         return False
+
+
+    def load_polygon_data(self):
+        self.polygons = []
+        self.labels = {}
+
+        if not self.camera_id:
+            return
+
+        # Fetch the polygon data from the database for the current camera
+        self.cursor.execute(
+            "SELECT polygon_data FROM Cameras WHERE id = ?", (self.camera_id,)
+        )
+        result = self.cursor.fetchone()
+        if result is not None:
+            polygon_data_json = result[0]
+            polygon_data = json.loads(polygon_data_json)
+
+            # Process the fetched polygons
+            for polygon in polygon_data:
+                label = polygon["label"]
+                coordinates = polygon["coordinates"]
+
+                # Convert the list of coordinates to QPointF objects
+                points = [QPointF(x, y) for x, y in coordinates]
+
+                # Create a QPolygonF object and add it to the polygons list
+                self.polygons.append(QPolygonF(points))
+                self.labels[len(self.polygons) - 1] = label
+
+        self.update()

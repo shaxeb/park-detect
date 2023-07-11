@@ -24,6 +24,7 @@ class Model:
         self.current_polygon_points = []
         self.polygons = []
         self.labels = {}
+        self.selected_camera_id = ""
 
 
 class Controller:
@@ -51,16 +52,36 @@ class Controller:
         self.view.drawingWidget = DrawingWidget(self.view.camViewLabel)
         self.view.drawingWidget.setGeometry(self.view.camViewLabel.rect())
 
+        self.conn = sqlite3.connect("camera_database.db")
+
     @Slot()
     def select_cam_button_clicked(self):
         self.view.stackedWidget.setCurrentIndex(2)
-        selected_ip_item = self.view.camTableWidget.item(
-            self.view.camTableWidget.currentRow(), 1)
-        if selected_ip_item:
-            self.model.selected_ip = selected_ip_item.text()
-            self.view.selectedCamLabel.setText(
-                f"Selected Camera IP: {self.model.selected_ip}")
-            self.start_video_stream()
+        selected_row = self.view.camTableWidget.currentRow()
+        if selected_row >= 0:
+            cursor = self.conn.cursor()
+            cursor.execute("SELECT id, ip_address FROM Cameras")
+            data = cursor.fetchall()
+            if selected_row < len(data):
+                # Get the camera ID from the selected row
+                camera_id = data[selected_row][0]
+                ip_item = self.view.camTableWidget.item(selected_row, 1)
+                camera_ip = ip_item.text()
+                if ip_item:
+                    self.model.selected_ip = camera_ip
+                    self.model.selected_camera_id = camera_id
+                    self.view.selectedCamLabel.setText(
+                        f"Selected Camera IP: {self.model.selected_ip}")
+                    self.view.drawingWidget.set_camera_id(
+                        self.model.selected_camera_id)  # Pass the camera ID
+                    self.view.drawingWidget.load_polygon_data()  # Load the polygons from the database
+                    self.start_video_stream()
+            else:
+                QMessageBox.warning(
+                    self, "Invalid Row Selected", "Please select a valid row.")
+        else:
+            QMessageBox.warning(self, "No Row Selected",
+                                "Please select a row.")
 
     def start_video_stream(self):
         if self.video_thread is not None:
@@ -72,6 +93,9 @@ class Controller:
         self.video_thread = VideoThread(ip)
         self.video_thread.frame_available.connect(self.display_frame)
         self.video_thread.start()
+
+        # Pass the camera ID to the DrawingWidget
+        self.view.drawingWidget.set_camera_id(self.model.selected_camera_id)
 
     @Slot()
     def toggle_stream_button_clicked(self):
@@ -199,19 +223,24 @@ class MainWindow(QMainWindow):
         self.conn = sqlite3.connect("camera_database.db")
         cursor = self.conn.cursor()
         cursor.execute(
-            "CREATE TABLE IF NOT EXISTS Cameras (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL, ip_address TEXT NOT NULL)"
+            "CREATE TABLE IF NOT EXISTS Cameras (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL, ip_address TEXT NOT NULL, polygon_data TEXT)"
         )
 
-        cursor.execute(
-            "CREATE TABLE IF NOT EXISTS Polygons (id INTEGER PRIMARY KEY AUTOINCREMENT, camera_id INTEGER NOT NULL, label TEXT NOT NULL, coordinates TEXT NOT NULL, FOREIGN KEY (camera_id) REFERENCES Cameras (id))"
-        )
-
-        self.model.current_polygon_points = []  # Remove this line
+        self.model.current_polygon_points = []
 
         self.ui.drawingWidget = DrawingWidget(self.ui.camViewLabel)
         self.ui.drawingWidget.setGeometry(self.ui.camViewLabel.geometry())
         self.ui.completeButton.clicked.connect(
             self.ui.drawingWidget.complete_polygon)
+        self.ui.deleteLastButton.clicked.connect(self.delete_last_polygon)
+        self.ui.removeAllButton.clicked.connect(
+            self.ui.drawingWidget.remove_all_polygons)
+
+    @Slot()
+    def delete_last_polygon(self):
+        if self.ui.drawingWidget.polygons:
+            self.ui.drawingWidget.remove_polygon(-1)
+            self.ui.drawingWidget.update()
 
     def mousePressEvent(self, event):
         if event.button() == Qt.LeftButton:
@@ -309,15 +338,13 @@ class MainWindow(QMainWindow):
                 "SELECT id FROM Cameras WHERE ip_address = ?", (ip,))
             camera_id = cursor.fetchone()[0]
 
-            cursor.execute(
-                "DELETE FROM Polygons WHERE camera_id = ?", (camera_id,))
             cursor.execute("DELETE FROM Cameras WHERE ip_address = ?", (ip,))
             self.conn.commit()
             self.load_table_data()
             self.clear_input_fields()
         else:
-            QMessageBox.warning(self, "No Row Selected", "Please select a row to delete.")\
-
+            QMessageBox.warning(self, "No Row Selected",
+                                "Please select a row to delete.")
 
     def get_polygons(self):
         selected_row = self.ui.camTableWidget.currentRow()
@@ -329,12 +356,16 @@ class MainWindow(QMainWindow):
             camera_id = cursor.fetchone()[0]
 
             cursor.execute(
-                "SELECT label, coordinates FROM Polygons WHERE camera_id = ?", (camera_id,))
-            polygons = cursor.fetchall()
+                "SELECT polygon_data FROM Cameras WHERE id = ?", (camera_id,))
+            data = cursor.fetchone()
+            if data and data[0]:
+                polygon_data = json.loads(data[0])
+                # Process the fetched polygon data as needed
 
-            # Process the fetched polygons as needed
-
-            print(polygons)
+                print(polygon_data)
+            else:
+                QMessageBox.warning(
+                    self, "No Polygons", "There are no polygons for the selected camera.")
         else:
             QMessageBox.warning(self, "No Row Selected",
                                 "Please select a camera.")
