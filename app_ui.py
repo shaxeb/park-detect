@@ -89,11 +89,22 @@ class Ui_MainWindow(object):
         icon2 = QIcon()
         icon2.addFile(u":/media/media/edit.png", QSize(), QIcon.Normal, QIcon.Off)
         self.edit_btn_1.setIcon(icon2)
-        self.edit_btn_1.setIconSize(QSize(24, 24))
+        self.edit_btn_1.setIconSize(QSize(24, 27))
         self.edit_btn_1.setCheckable(True)
         self.edit_btn_1.setAutoExclusive(True)
 
         self.verticalLayout.addWidget(self.edit_btn_1)
+
+        self.ai_btn_1 = QPushButton(self.icon_only_widget)
+        self.ai_btn_1.setObjectName(u"ai_btn_1")
+        icon3 = QIcon()
+        icon3.addFile(u":/media/media/artificial-intelligence.png", QSize(), QIcon.Normal, QIcon.Off)
+        self.ai_btn_1.setIcon(icon3)
+        self.ai_btn_1.setIconSize(QSize(24, 27))
+        self.ai_btn_1.setCheckable(True)
+        self.ai_btn_1.setAutoExclusive(True)
+
+        self.verticalLayout.addWidget(self.ai_btn_1)
 
 
         self.verticalLayout_3.addLayout(self.verticalLayout)
@@ -104,9 +115,9 @@ class Ui_MainWindow(object):
 
         self.exit_btn_1 = QPushButton(self.icon_only_widget)
         self.exit_btn_1.setObjectName(u"exit_btn_1")
-        icon3 = QIcon()
-        icon3.addFile(u":/media/media/close.png", QSize(), QIcon.Normal, QIcon.Off)
-        self.exit_btn_1.setIcon(icon3)
+        icon4 = QIcon()
+        icon4.addFile(u":/media/media/close.png", QSize(), QIcon.Normal, QIcon.Off)
+        self.exit_btn_1.setIcon(icon4)
         self.exit_btn_1.setIconSize(QSize(24, 24))
         self.exit_btn_1.setCheckable(True)
         self.exit_btn_1.setAutoExclusive(True)
@@ -155,11 +166,20 @@ class Ui_MainWindow(object):
         self.edit_btn_2.setObjectName(u"edit_btn_2")
         self.edit_btn_2.setMaximumSize(QSize(16777215, 50))
         self.edit_btn_2.setIcon(icon2)
-        self.edit_btn_2.setIconSize(QSize(24, 24))
+        self.edit_btn_2.setIconSize(QSize(24, 27))
         self.edit_btn_2.setCheckable(True)
         self.edit_btn_2.setAutoExclusive(True)
 
         self.verticalLayout_2.addWidget(self.edit_btn_2)
+
+        self.ai_btn_2 = QPushButton(self.full_menu_widget)
+        self.ai_btn_2.setObjectName(u"ai_btn_2")
+        self.ai_btn_2.setIcon(icon3)
+        self.ai_btn_2.setIconSize(QSize(24, 27))
+        self.ai_btn_2.setCheckable(True)
+        self.ai_btn_2.setAutoExclusive(True)
+
+        self.verticalLayout_2.addWidget(self.ai_btn_2)
 
 
         self.verticalLayout_4.addLayout(self.verticalLayout_2)
@@ -170,7 +190,7 @@ class Ui_MainWindow(object):
 
         self.exit_btn_2 = QPushButton(self.full_menu_widget)
         self.exit_btn_2.setObjectName(u"exit_btn_2")
-        self.exit_btn_2.setIcon(icon3)
+        self.exit_btn_2.setIcon(icon4)
         self.exit_btn_2.setIconSize(QSize(24, 24))
         self.exit_btn_2.setCheckable(True)
         self.exit_btn_2.setAutoExclusive(True)
@@ -195,9 +215,9 @@ class Ui_MainWindow(object):
         self.menu_btn = QPushButton(self.header_widget)
         self.menu_btn.setObjectName(u"menu_btn")
         self.menu_btn.setMaximumSize(QSize(193, 16777215))
-        icon4 = QIcon()
-        icon4.addFile(u":/media/media/menu.png", QSize(), QIcon.Normal, QIcon.Off)
-        self.menu_btn.setIcon(icon4)
+        icon5 = QIcon()
+        icon5.addFile(u":/media/media/menu.png", QSize(), QIcon.Normal, QIcon.Off)
+        self.menu_btn.setIcon(icon5)
         self.menu_btn.setIconSize(QSize(20, 20))
         self.menu_btn.setCheckable(True)
 
@@ -213,9 +233,9 @@ class Ui_MainWindow(object):
 
         self.user_btn = QPushButton(self.header_widget)
         self.user_btn.setObjectName(u"user_btn")
-        icon5 = QIcon()
-        icon5.addFile(u"media/user.png", QSize(), QIcon.Normal, QIcon.Off)
-        self.user_btn.setIcon(icon5)
+        icon6 = QIcon()
+        icon6.addFile(u"media/user.png", QSize(), QIcon.Normal, QIcon.Off)
+        self.user_btn.setIcon(icon6)
         self.user_btn.setIconSize(QSize(20, 20))
 
         self.horizontalLayout_3.addWidget(self.user_btn)
@@ -291,9 +311,9 @@ class Ui_MainWindow(object):
         self.addCamButton = QPushButton(self.camPage)
         self.addCamButton.setObjectName(u"addCamButton")
         self.addCamButton.setStyleSheet(u"")
-        icon6 = QIcon()
-        icon6.addFile(u"media/check.png", QSize(), QIcon.Normal, QIcon.Off)
-        self.addCamButton.setIcon(icon6)
+        icon7 = QIcon()
+        icon7.addFile(u"media/check.png", QSize(), QIcon.Normal, QIcon.Off)
+        self.addCamButton.setIcon(icon7)
         self.addCamButton.setIconSize(QSize(32, 32))
 
         self.horizontalLayout_7.addWidget(self.addCamButton)
@@ -313,9 +333,9 @@ class Ui_MainWindow(object):
         self.removeCamButton = QPushButton(self.camPage)
         self.removeCamButton.setObjectName(u"removeCamButton")
         self.removeCamButton.setStyleSheet(u"")
-        icon7 = QIcon()
-        icon7.addFile(u"media/close.png", QSize(), QIcon.Normal, QIcon.Off)
-        self.removeCamButton.setIcon(icon7)
+        icon8 = QIcon()
+        icon8.addFile(u"media/close.png", QSize(), QIcon.Normal, QIcon.Off)
+        self.removeCamButton.setIcon(icon8)
         self.removeCamButton.setIconSize(QSize(22, 22))
 
         self.verticalLayout_6.addWidget(self.removeCamButton)
@@ -344,49 +364,52 @@ class Ui_MainWindow(object):
         self.editPage.setObjectName(u"editPage")
         self.gridLayout_2 = QGridLayout(self.editPage)
         self.gridLayout_2.setObjectName(u"gridLayout_2")
-        self.aspectRatioComboBox = QComboBox(self.editPage)
-        self.aspectRatioComboBox.addItem("")
-        self.aspectRatioComboBox.addItem("")
-        self.aspectRatioComboBox.setObjectName(u"aspectRatioComboBox")
-        self.aspectRatioComboBox.setEditable(False)
+        self.deleteLastButton = QPushButton(self.editPage)
+        self.deleteLastButton.setObjectName(u"deleteLastButton")
 
-        self.gridLayout_2.addWidget(self.aspectRatioComboBox, 1, 2, 1, 1)
-
-        self.completeButton = QPushButton(self.editPage)
-        self.completeButton.setObjectName(u"completeButton")
-
-        self.gridLayout_2.addWidget(self.completeButton, 2, 1, 1, 1)
+        self.gridLayout_2.addWidget(self.deleteLastButton, 2, 3, 1, 1)
 
         self.toggleStreamButton = QPushButton(self.editPage)
         self.toggleStreamButton.setObjectName(u"toggleStreamButton")
         self.toggleStreamButton.setCheckable(True)
         self.toggleStreamButton.setChecked(True)
 
-        self.gridLayout_2.addWidget(self.toggleStreamButton, 2, 0, 1, 1)
-
-        self.deleteLastButton = QPushButton(self.editPage)
-        self.deleteLastButton.setObjectName(u"deleteLastButton")
-
-        self.gridLayout_2.addWidget(self.deleteLastButton, 2, 2, 1, 1)
+        self.gridLayout_2.addWidget(self.toggleStreamButton, 2, 1, 1, 1)
 
         self.removeAllButton = QPushButton(self.editPage)
         self.removeAllButton.setObjectName(u"removeAllButton")
 
-        self.gridLayout_2.addWidget(self.removeAllButton, 2, 3, 1, 1)
-
-        self.selectedCamLabel = QLabel(self.editPage)
-        self.selectedCamLabel.setObjectName(u"selectedCamLabel")
-        self.selectedCamLabel.setMaximumSize(QSize(761253, 20))
-
-        self.gridLayout_2.addWidget(self.selectedCamLabel, 1, 0, 1, 2)
+        self.gridLayout_2.addWidget(self.removeAllButton, 2, 4, 1, 1)
 
         self.camViewLabel = QLabel(self.editPage)
         self.camViewLabel.setObjectName(u"camViewLabel")
         self.camViewLabel.setMaximumSize(QSize(1280, 720))
 
-        self.gridLayout_2.addWidget(self.camViewLabel, 0, 0, 1, 4)
+        self.gridLayout_2.addWidget(self.camViewLabel, 0, 1, 1, 4)
+
+        self.selectedCamLabel = QLabel(self.editPage)
+        self.selectedCamLabel.setObjectName(u"selectedCamLabel")
+        self.selectedCamLabel.setMaximumSize(QSize(761253, 20))
+
+        self.gridLayout_2.addWidget(self.selectedCamLabel, 1, 1, 1, 2)
+
+        self.completeButton = QPushButton(self.editPage)
+        self.completeButton.setObjectName(u"completeButton")
+
+        self.gridLayout_2.addWidget(self.completeButton, 2, 2, 1, 1)
+
+        self.aspectRatioComboBox = QComboBox(self.editPage)
+        self.aspectRatioComboBox.addItem("")
+        self.aspectRatioComboBox.addItem("")
+        self.aspectRatioComboBox.setObjectName(u"aspectRatioComboBox")
+        self.aspectRatioComboBox.setEditable(False)
+
+        self.gridLayout_2.addWidget(self.aspectRatioComboBox, 1, 3, 1, 1)
 
         self.stackedWidget.addWidget(self.editPage)
+        self.aiPage = QWidget()
+        self.aiPage.setObjectName(u"aiPage")
+        self.stackedWidget.addWidget(self.aiPage)
         self.userPage_2 = QWidget()
         self.userPage_2.setObjectName(u"userPage_2")
         self.gridLayout_5 = QGridLayout(self.userPage_2)
@@ -412,15 +435,15 @@ class Ui_MainWindow(object):
         self.menu_btn.toggled.connect(self.icon_only_widget.setVisible)
         self.menu_btn.toggled.connect(self.full_menu_widget.setHidden)
         self.cam_btn_1.toggled.connect(self.cam_btn_2.setChecked)
-        self.edit_btn_1.toggled.connect(self.edit_btn_2.setChecked)
-        self.edit_btn_2.toggled.connect(self.edit_btn_1.setChecked)
         self.cam_btn_2.toggled.connect(self.cam_btn_1.setChecked)
         self.home_btn_1.toggled.connect(self.home_btn_2.setChecked)
         self.home_btn_2.toggled.connect(self.home_btn_1.setChecked)
         self.exit_btn_2.clicked.connect(MainWindow.close)
         self.exit_btn_1.clicked.connect(MainWindow.close)
+        self.ai_btn_1.toggled.connect(self.ai_btn_2.setChecked)
+        self.ai_btn_2.toggled.connect(self.ai_btn_1.setChecked)
 
-        self.stackedWidget.setCurrentIndex(2)
+        self.stackedWidget.setCurrentIndex(3)
 
 
         QMetaObject.connectSlotsByName(MainWindow)
@@ -432,11 +455,13 @@ class Ui_MainWindow(object):
         self.home_btn_1.setText("")
         self.cam_btn_1.setText("")
         self.edit_btn_1.setText("")
+        self.ai_btn_1.setText("")
         self.exit_btn_1.setText("")
         self.logo_label_2.setText("")
         self.home_btn_2.setText(QCoreApplication.translate("MainWindow", u" Home", None))
         self.cam_btn_2.setText(QCoreApplication.translate("MainWindow", u" Add Camera", None))
         self.edit_btn_2.setText(QCoreApplication.translate("MainWindow", u" Annotate Camera", None))
+        self.ai_btn_2.setText(QCoreApplication.translate("MainWindow", u" Run AI", None))
         self.exit_btn_2.setText(QCoreApplication.translate("MainWindow", u" Exit", None))
         self.menu_btn.setText("")
         self.user_btn.setText("")
@@ -472,6 +497,12 @@ class Ui_MainWindow(object):
 #endif // QT_CONFIG(tooltip)
         self.selectCamButton.setText(QCoreApplication.translate("MainWindow", u"Select camera\n"
 " for Annotation", None))
+        self.deleteLastButton.setText(QCoreApplication.translate("MainWindow", u"Delete Last Polygon", None))
+        self.toggleStreamButton.setText(QCoreApplication.translate("MainWindow", u"Toggle Stream", None))
+        self.removeAllButton.setText(QCoreApplication.translate("MainWindow", u"Remove All Polygons", None))
+        self.camViewLabel.setText("")
+        self.selectedCamLabel.setText(QCoreApplication.translate("MainWindow", u"Selected Camera: ", None))
+        self.completeButton.setText(QCoreApplication.translate("MainWindow", u"Complete Polygon", None))
         self.aspectRatioComboBox.setItemText(0, QCoreApplication.translate("MainWindow", u"4:3", None))
         self.aspectRatioComboBox.setItemText(1, QCoreApplication.translate("MainWindow", u"16:9", None))
 
@@ -479,12 +510,6 @@ class Ui_MainWindow(object):
         self.aspectRatioComboBox.setToolTip(QCoreApplication.translate("MainWindow", u"<html><head/><body><p>Select aspect ratio for your camera</p></body></html>", None))
 #endif // QT_CONFIG(tooltip)
         self.aspectRatioComboBox.setPlaceholderText(QCoreApplication.translate("MainWindow", u"Select Aspect Ratio", None))
-        self.completeButton.setText(QCoreApplication.translate("MainWindow", u"Complete Polygon", None))
-        self.toggleStreamButton.setText(QCoreApplication.translate("MainWindow", u"Toggle Stream", None))
-        self.deleteLastButton.setText(QCoreApplication.translate("MainWindow", u"Delete Last Polygon", None))
-        self.removeAllButton.setText(QCoreApplication.translate("MainWindow", u"Remove All Polygons", None))
-        self.selectedCamLabel.setText(QCoreApplication.translate("MainWindow", u"Selected Camera: ", None))
-        self.camViewLabel.setText("")
         self.label_9.setText(QCoreApplication.translate("MainWindow", u"<html><head/><body><p align=\"center\">This page is for user authentication</p></body></html>", None))
     # retranslateUi
 

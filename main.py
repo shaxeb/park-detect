@@ -39,6 +39,8 @@ class Controller:
         self.view.cam_btn_2.toggled.connect(lambda: self.on_button_toggled(1))
         self.view.edit_btn_1.toggled.connect(lambda: self.on_button_toggled(2))
         self.view.edit_btn_2.toggled.connect(lambda: self.on_button_toggled(2))
+        self.view.ai_btn_1.toggled.connect(lambda: self.on_button_toggled(3))
+        self.view.ai_btn_2.toggled.connect(lambda: self.on_button_toggled(3))
 
         self.view.selectCamButton.clicked.connect(
             self.select_cam_button_clicked)
@@ -135,7 +137,7 @@ class Controller:
 
     @Slot()
     def user_btn_clicked(self):
-        self.view.stackedWidget.setCurrentIndex(3)
+        self.view.stackedWidget.setCurrentIndex(4)
 
     @Slot(int)
     def on_button_toggled(self, index):

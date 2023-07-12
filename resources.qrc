@@ -1,5 +1,6 @@
 <RCC>
   <qresource prefix="media">
+    <file>media/artificial-intelligence.png</file>
     <file>media/search.png</file>
     <file>media/menu.png</file>
     <file>media/casino-cctv.png</file>
