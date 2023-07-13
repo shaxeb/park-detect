@@ -196,9 +196,6 @@ if option == 2:
             }
             selected_camera = data["cameras"][camera_name]
             print("New camera added successfully!")
-
-        # Save the data to the database
-        save_data(data)
     else:
         # Add the new camera to the data
         data["cameras"][camera_name] = {

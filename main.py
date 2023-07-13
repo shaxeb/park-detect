@@ -5,12 +5,12 @@ import time
 
 import cv2
 import numpy as np
-from PySide6.QtCore import QMutex, QThread, QWaitCondition, Signal, Slot
+import torch
+from PySide6.QtCore import (QMutex, QObject, QThread, QWaitCondition, Signal,
+                            Slot)
 from PySide6.QtGui import QImage, QPixmap, Qt
-from PySide6.QtSql import QSqlDatabase, QSqlQuery, QSqlQueryModel
-from PySide6.QtWidgets import (QApplication, QInputDialog, QLineEdit,
-                               QMainWindow, QMessageBox, QPushButton,
-                               QStackedWidget, QTableWidget, QTableWidgetItem)
+from PySide6.QtWidgets import (QApplication, QMainWindow, QMessageBox,
+                               QPushButton, QTableWidgetItem)
 
 from app_ui import Ui_MainWindow
 from drawingwidget import DrawingWidget
@@ -32,6 +32,7 @@ class Controller:
         self.model = model
         self.view = view
         self.video_thread = None
+        self.video_processing_thread = None
 
         self.view.home_btn_1.toggled.connect(lambda: self.on_button_toggled(0))
         self.view.home_btn_2.toggled.connect(lambda: self.on_button_toggled(0))
@@ -56,6 +57,77 @@ class Controller:
 
         self.conn = sqlite3.connect("camera_database.db")
 
+        # Load the YOLOv5 model
+        self.model.yolov5_model = torch.hub.load(
+            'ultralytics/yolov5', 'yolov5s', pretrained=True
+        )
+
+        self.view.runAIButton.clicked.connect(self.run_ai_button_clicked)
+
+    def run_ai_button_clicked(self):
+        selected_row = self.view.camTableWidget.currentRow()
+        if selected_row >= 0:
+            ip_item = self.view.camTableWidget.item(selected_row, 1)
+            if ip_item:
+                camera_ip = ip_item.text()
+                self.start_ai_stream(camera_ip)
+
+    def start_ai_stream(self, camera_ip):
+        if self.video_processing_thread is not None:
+            self.video_processing_thread.stop()
+            self.video_processing_thread.wait()
+            self.video_processing_thread = None
+
+        self.view.aiViewLabel.clear()
+
+        self.video_processing_worker = VideoProcessingWorker(
+            camera_ip, self.model, self.model.polygons, self.model.labels)
+        self.video_processing_thread = QThread()
+        self.video_processing_worker.moveToThread(self.video_processing_thread)
+
+        self.video_processing_worker.frame_available.connect(
+            self.display_ai_frame)
+        self.video_processing_thread.started.connect(
+            self.video_processing_worker.process_frame)
+        self.video_processing_thread.finished.connect(
+            self.video_processing_worker.deleteLater)
+
+        self.video_processing_thread.start()
+
+    def display_ai_frame(self, frame):
+        print("Polygons:", self.model.polygons)
+        print("Labels:", self.model.labels)
+        # Perform object detection on the frame using YOLOv5
+        results = self.model.yolov5_model(frame)
+
+        car_count = 0
+        for index, row in results.pandas().xyxy[0].iterrows():
+            x1 = int(row['xmin'])
+            y1 = int(row['ymin'])
+            x2 = int(row['xmax'])
+            y2 = int(row['ymax'])
+            d = row['name']
+            cx = (x1 + x2) // 2
+            cy = (y1 + y2) // 2
+            if 'car' in d:
+                for area in self.model.polygons:
+                    if cv2.pointPolygonTest(np.array(area, np.int32), (cx, cy), False) >= 0:
+                        # Draw bounding box around the car
+                        cv2.rectangle(frame, (x1, y1),
+                                      (x2, y2), (0, 0, 255), 3)
+                        car_count += 1
+
+        print("Number of cars detected:", car_count)
+
+        # Convert the frame to QImage format
+        height, width, _ = frame.shape
+        bytes_per_line = 3 * width
+        q_image = QImage(frame.data, width, height,
+                         bytes_per_line, QImage.Format_RGB888)
+
+        # Display the frame in the AI view label
+        self.view.aiViewLabel.setPixmap(QPixmap.fromImage(q_image))
+
     @Slot()
     def select_cam_button_clicked(self):
         self.view.stackedWidget.setCurrentIndex(2)
@@ -76,7 +148,8 @@ class Controller:
                         f"Selected Camera IP: {self.model.selected_ip}")
                     self.view.drawingWidget.set_camera_id(
                         self.model.selected_camera_id)  # Pass the camera ID
-                    self.view.drawingWidget.load_polygon_data()  # Load the polygons from the database
+                    # Load the polygons from the database
+                    self.view.drawingWidget.load_polygon_data()
                     self.start_video_stream()
             else:
                 QMessageBox.warning(
@@ -105,6 +178,7 @@ class Controller:
             self.start_video_stream()  # Start or resume video playback
         else:
             self.stop_video_stream()  # Stop video playback
+            self.display_frame(np.zeros((1, 1, 3), dtype=np.uint8))
 
     def pause_video_stream(self):
         if self.video_thread is not None:
@@ -168,8 +242,6 @@ class VideoThread(QThread):
 
             QApplication.processEvents()
 
-            time.sleep(0.001)  # Pause the thread for a short interval
-
         cap.release()
 
     def dummy(self):
@@ -191,6 +263,58 @@ class VideoThread(QThread):
         self.paused = False
         self.condition.wakeAll()
         self.mutex.unlock()
+
+
+class VideoProcessingWorker(QObject):
+    frame_available = Signal(np.ndarray)
+
+    def __init__(self, camera_ip, model, polygons, labels):
+        super().__init__()
+        self.camera_ip = camera_ip
+        self.model = model
+        self.polygons = polygons
+        self.labels = labels
+        self.running = False
+
+    def process_frame(self):
+        cap = cv2.VideoCapture(self.camera_ip)
+        self.running = True
+
+        while self.running:
+            ret, frame = cap.read()
+            if ret:
+                self.frame_available.emit(frame)
+
+        cap.release()
+
+    def stop(self):
+        self.running = False
+
+
+class VideoProcessingThread(QThread):
+    frame_available = Signal(np.ndarray)
+
+    def __init__(self, camera_ip, model, polygons, labels):
+        super(VideoProcessingThread, self).__init__()
+        self.camera_ip = camera_ip
+        self.model = model
+        self.polygons = polygons
+        self.labels = labels
+        self.running = False
+
+    def run(self):
+        cap = cv2.VideoCapture(self.camera_ip)
+        self.running = True
+
+        while self.running:
+            ret, frame = cap.read()
+            if ret:
+                self.frame_available.emit(frame)
+
+        cap.release()
+
+    def stop(self):
+        self.running = False
 
 
 class MainWindow(QMainWindow):
@@ -238,6 +362,13 @@ class MainWindow(QMainWindow):
         self.ui.removeAllButton.clicked.connect(
             self.ui.drawingWidget.remove_all_polygons)
 
+        self.ui.aiViewLabel.clear()
+
+    def start_ai_stream(self, camera_ip):
+        self.model.selected_ip = camera_ip
+        self.model.polygons, self.model.labels = self.get_polygons()
+        self.ui.stackedWidget.setCurrentWidget(self.ui.aiPage)
+
     @Slot()
     def delete_last_polygon(self):
         if self.ui.drawingWidget.polygons:
@@ -273,12 +404,6 @@ class MainWindow(QMainWindow):
     def keyPressEvent(self, event):
         if event.key() == Qt.Key_Escape:
             self.close()
-
-    def mousePressEvent(self, event):
-        if event.button() == Qt.LeftButton:
-            if self.ui.toggleStreamButton.isChecked():
-                self.model.current_polygon_points.append(
-                    (event.pos().x(), event.pos().y()))
 
     def on_table_cell_clicked(self, row, column):
         table_widget = self.ui.camTableWidget
@@ -349,44 +474,51 @@ class MainWindow(QMainWindow):
                                 "Please select a row to delete.")
 
     def get_polygons(self):
-        selected_row = self.ui.camTableWidget.currentRow()
+        selected_row = self.view.camTableWidget.currentRow()
         if selected_row >= 0:
-            ip = self.ui.camTableWidget.item(selected_row, 1).text()
-            cursor = self.conn.cursor()
-            cursor.execute(
-                "SELECT id FROM Cameras WHERE ip_address = ?", (ip,))
-            camera_id = cursor.fetchone()[0]
+            ip_item = self.view.camTableWidget.item(selected_row, 1)
+            if ip_item:
+                camera_ip = ip_item.text()
+                print("Camera IP:", camera_ip)
+                try:
+                    cursor = self.conn.cursor()
+                    cursor.execute(
+                        "SELECT polygon_data FROM Cameras WHERE ip_address = ?", (camera_ip,))
+                    data = cursor.fetchone()
 
-            cursor.execute(
-                "SELECT polygon_data FROM Cameras WHERE id = ?", (camera_id,))
-            data = cursor.fetchone()
-            if data and data[0]:
-                polygon_data = json.loads(data[0])
-                # Process the fetched polygon data as needed
+                    if data and data[0]:
+                        polygon_data = json.loads(data[0])
+                        polygons = []
+                        labels = {}
 
-                print(polygon_data)
+                        for polygon_entry in polygon_data:
+                            coordinates = polygon_entry.get("coordinates")
+                            if coordinates:
+                                polygon = [(x, y) for x, y in coordinates]
+                                polygons.append(polygon)
+
+                            label = polygon_entry.get("label")
+                            if label:
+                                labels[len(polygons) - 1] = label
+
+                        # Print polygons and labels for debugging
+                        print("Polygons:", polygons)
+                        print("Labels:", labels)
+
+                        return polygons, labels
+                    else:
+                        QMessageBox.warning(
+                            self.view, "No Polygons", "There are no polygons for the selected camera.")
+                except Exception as e:
+                    print("Error retrieving polygons:", e)
+                    QMessageBox.warning(
+                        self.view, "Error", "An error occurred while retrieving polygons.")
             else:
                 QMessageBox.warning(
-                    self, "No Polygons", "There are no polygons for the selected camera.")
+                    self.view, "No Row Selected", "Please select a camera.")
         else:
-            QMessageBox.warning(self, "No Row Selected",
+            QMessageBox.warning(self.view, "No Row Selected",
                                 "Please select a camera.")
-
-    def clear_input_fields(self):
-        self.ui.camnameLineEdit.clear()
-        self.ui.camipLineEdit.clear()
-
-    @Slot(int)
-    def on_stackedWidget_currentChanged(self, index):
-        btn_list = self.ui.icon_only_widget.findChildren(QPushButton)
-        btn_list += self.ui.full_menu_widget.findChildren(QPushButton)
-
-        for btn in btn_list:
-            if index in [3, 4]:
-                btn.setAutoExclusive(False)
-                btn.setChecked(False)
-            else:
-                btn.setAutoExclusive(True)
 
 
 if __name__ == "__main__":

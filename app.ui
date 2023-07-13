@@ -539,7 +539,7 @@
        <item>
         <widget class="QStackedWidget" name="stackedWidget">
          <property name="currentIndex">
-          <number>3</number>
+          <number>2</number>
          </property>
          <widget class="QWidget" name="homePage">
           <layout class="QGridLayout" name="gridLayout_6">
@@ -725,66 +725,6 @@
          </widget>
          <widget class="QWidget" name="editPage">
           <layout class="QGridLayout" name="gridLayout_2">
-           <item row="2" column="3">
-            <widget class="QPushButton" name="deleteLastButton">
-             <property name="text">
-              <string>Delete Last Polygon</string>
-             </property>
-            </widget>
-           </item>
-           <item row="2" column="1">
-            <widget class="QPushButton" name="toggleStreamButton">
-             <property name="text">
-              <string>Toggle Stream</string>
-             </property>
-             <property name="checkable">
-              <bool>true</bool>
-             </property>
-             <property name="checked">
-              <bool>true</bool>
-             </property>
-            </widget>
-           </item>
-           <item row="2" column="4">
-            <widget class="QPushButton" name="removeAllButton">
-             <property name="text">
-              <string>Remove All Polygons</string>
-             </property>
-            </widget>
-           </item>
-           <item row="0" column="1" colspan="4">
-            <widget class="QLabel" name="camViewLabel">
-             <property name="maximumSize">
-              <size>
-               <width>1280</width>
-               <height>720</height>
-              </size>
-             </property>
-             <property name="text">
-              <string/>
-             </property>
-            </widget>
-           </item>
-           <item row="1" column="1" colspan="2">
-            <widget class="QLabel" name="selectedCamLabel">
-             <property name="maximumSize">
-              <size>
-               <width>761253</width>
-               <height>20</height>
-              </size>
-             </property>
-             <property name="text">
-              <string>Selected Camera: </string>
-             </property>
-            </widget>
-           </item>
-           <item row="2" column="2">
-            <widget class="QPushButton" name="completeButton">
-             <property name="text">
-              <string>Complete Polygon</string>
-             </property>
-            </widget>
-           </item>
            <item row="1" column="3">
             <widget class="QComboBox" name="aspectRatioComboBox">
              <property name="toolTip">
@@ -808,10 +748,112 @@
              </item>
             </widget>
            </item>
+           <item row="2" column="4">
+            <widget class="QPushButton" name="removeAllButton">
+             <property name="text">
+              <string>Remove All Polygons</string>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="3">
+            <widget class="QPushButton" name="deleteLastButton">
+             <property name="text">
+              <string>Delete Last Polygon</string>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="1">
+            <widget class="QPushButton" name="toggleStreamButton">
+             <property name="text">
+              <string>Toggle Stream</string>
+             </property>
+             <property name="checkable">
+              <bool>true</bool>
+             </property>
+             <property name="checked">
+              <bool>true</bool>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="1" colspan="2">
+            <widget class="QLabel" name="selectedCamLabel">
+             <property name="maximumSize">
+              <size>
+               <width>761253</width>
+               <height>20</height>
+              </size>
+             </property>
+             <property name="text">
+              <string>Selected Camera: </string>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="2">
+            <widget class="QPushButton" name="completeButton">
+             <property name="text">
+              <string>Complete Polygon</string>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="5">
+            <widget class="QPushButton" name="runAIButton">
+             <property name="text">
+              <string>Detect Parking Spots</string>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="1" colspan="5">
+            <widget class="QLabel" name="camViewLabel">
+             <property name="maximumSize">
+              <size>
+               <width>1280</width>
+               <height>720</height>
+              </size>
+             </property>
+             <property name="text">
+              <string/>
+             </property>
+             <property name="scaledContents">
+              <bool>true</bool>
+             </property>
+            </widget>
+           </item>
           </layout>
          </widget>
-         <widget class="QWidget" name="aiPage"/>
-         <widget class="QWidget" name="userPage_2">
+         <widget class="QWidget" name="aiPage">
+          <layout class="QGridLayout" name="gridLayout_4">
+           <item row="1" column="0" colspan="2">
+            <widget class="QLabel" name="aiViewLabel">
+             <property name="maximumSize">
+              <size>
+               <width>1280</width>
+               <height>720</height>
+              </size>
+             </property>
+             <property name="text">
+              <string/>
+             </property>
+             <property name="scaledContents">
+              <bool>true</bool>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="0">
+            <widget class="QLabel" name="carCountLabel">
+             <property name="maximumSize">
+              <size>
+               <width>200</width>
+               <height>20</height>
+              </size>
+             </property>
+             <property name="text">
+              <string/>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+         <widget class="QWidget" name="userPage">
           <layout class="QGridLayout" name="gridLayout_5">
            <item row="0" column="0">
             <widget class="QLabel" name="label_9">

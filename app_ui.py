@@ -364,6 +364,19 @@ class Ui_MainWindow(object):
         self.editPage.setObjectName(u"editPage")
         self.gridLayout_2 = QGridLayout(self.editPage)
         self.gridLayout_2.setObjectName(u"gridLayout_2")
+        self.aspectRatioComboBox = QComboBox(self.editPage)
+        self.aspectRatioComboBox.addItem("")
+        self.aspectRatioComboBox.addItem("")
+        self.aspectRatioComboBox.setObjectName(u"aspectRatioComboBox")
+        self.aspectRatioComboBox.setEditable(False)
+
+        self.gridLayout_2.addWidget(self.aspectRatioComboBox, 1, 3, 1, 1)
+
+        self.removeAllButton = QPushButton(self.editPage)
+        self.removeAllButton.setObjectName(u"removeAllButton")
+
+        self.gridLayout_2.addWidget(self.removeAllButton, 2, 4, 1, 1)
+
         self.deleteLastButton = QPushButton(self.editPage)
         self.deleteLastButton.setObjectName(u"deleteLastButton")
 
@@ -376,17 +389,6 @@ class Ui_MainWindow(object):
 
         self.gridLayout_2.addWidget(self.toggleStreamButton, 2, 1, 1, 1)
 
-        self.removeAllButton = QPushButton(self.editPage)
-        self.removeAllButton.setObjectName(u"removeAllButton")
-
-        self.gridLayout_2.addWidget(self.removeAllButton, 2, 4, 1, 1)
-
-        self.camViewLabel = QLabel(self.editPage)
-        self.camViewLabel.setObjectName(u"camViewLabel")
-        self.camViewLabel.setMaximumSize(QSize(1280, 720))
-
-        self.gridLayout_2.addWidget(self.camViewLabel, 0, 1, 1, 4)
-
         self.selectedCamLabel = QLabel(self.editPage)
         self.selectedCamLabel.setObjectName(u"selectedCamLabel")
         self.selectedCamLabel.setMaximumSize(QSize(761253, 20))
@@ -398,29 +400,48 @@ class Ui_MainWindow(object):
 
         self.gridLayout_2.addWidget(self.completeButton, 2, 2, 1, 1)
 
-        self.aspectRatioComboBox = QComboBox(self.editPage)
-        self.aspectRatioComboBox.addItem("")
-        self.aspectRatioComboBox.addItem("")
-        self.aspectRatioComboBox.setObjectName(u"aspectRatioComboBox")
-        self.aspectRatioComboBox.setEditable(False)
+        self.runAIButton = QPushButton(self.editPage)
+        self.runAIButton.setObjectName(u"runAIButton")
 
-        self.gridLayout_2.addWidget(self.aspectRatioComboBox, 1, 3, 1, 1)
+        self.gridLayout_2.addWidget(self.runAIButton, 2, 5, 1, 1)
+
+        self.camViewLabel = QLabel(self.editPage)
+        self.camViewLabel.setObjectName(u"camViewLabel")
+        self.camViewLabel.setMaximumSize(QSize(1280, 720))
+        self.camViewLabel.setScaledContents(True)
+
+        self.gridLayout_2.addWidget(self.camViewLabel, 0, 1, 1, 5)
 
         self.stackedWidget.addWidget(self.editPage)
         self.aiPage = QWidget()
         self.aiPage.setObjectName(u"aiPage")
+        self.gridLayout_4 = QGridLayout(self.aiPage)
+        self.gridLayout_4.setObjectName(u"gridLayout_4")
+        self.aiViewLabel = QLabel(self.aiPage)
+        self.aiViewLabel.setObjectName(u"aiViewLabel")
+        self.aiViewLabel.setMaximumSize(QSize(1280, 720))
+        self.aiViewLabel.setScaledContents(True)
+
+        self.gridLayout_4.addWidget(self.aiViewLabel, 1, 0, 1, 2)
+
+        self.carCountLabel = QLabel(self.aiPage)
+        self.carCountLabel.setObjectName(u"carCountLabel")
+        self.carCountLabel.setMaximumSize(QSize(200, 20))
+
+        self.gridLayout_4.addWidget(self.carCountLabel, 2, 0, 1, 1)
+
         self.stackedWidget.addWidget(self.aiPage)
-        self.userPage_2 = QWidget()
-        self.userPage_2.setObjectName(u"userPage_2")
-        self.gridLayout_5 = QGridLayout(self.userPage_2)
+        self.userPage = QWidget()
+        self.userPage.setObjectName(u"userPage")
+        self.gridLayout_5 = QGridLayout(self.userPage)
         self.gridLayout_5.setObjectName(u"gridLayout_5")
-        self.label_9 = QLabel(self.userPage_2)
+        self.label_9 = QLabel(self.userPage)
         self.label_9.setObjectName(u"label_9")
         self.label_9.setFont(font)
 
         self.gridLayout_5.addWidget(self.label_9, 0, 0, 1, 1)
 
-        self.stackedWidget.addWidget(self.userPage_2)
+        self.stackedWidget.addWidget(self.userPage)
 
         self.verticalLayout_5.addWidget(self.stackedWidget)
 
@@ -443,7 +464,7 @@ class Ui_MainWindow(object):
         self.ai_btn_1.toggled.connect(self.ai_btn_2.setChecked)
         self.ai_btn_2.toggled.connect(self.ai_btn_1.setChecked)
 
-        self.stackedWidget.setCurrentIndex(3)
+        self.stackedWidget.setCurrentIndex(2)
 
 
         QMetaObject.connectSlotsByName(MainWindow)
@@ -497,12 +518,6 @@ class Ui_MainWindow(object):
 #endif // QT_CONFIG(tooltip)
         self.selectCamButton.setText(QCoreApplication.translate("MainWindow", u"Select camera\n"
 " for Annotation", None))
-        self.deleteLastButton.setText(QCoreApplication.translate("MainWindow", u"Delete Last Polygon", None))
-        self.toggleStreamButton.setText(QCoreApplication.translate("MainWindow", u"Toggle Stream", None))
-        self.removeAllButton.setText(QCoreApplication.translate("MainWindow", u"Remove All Polygons", None))
-        self.camViewLabel.setText("")
-        self.selectedCamLabel.setText(QCoreApplication.translate("MainWindow", u"Selected Camera: ", None))
-        self.completeButton.setText(QCoreApplication.translate("MainWindow", u"Complete Polygon", None))
         self.aspectRatioComboBox.setItemText(0, QCoreApplication.translate("MainWindow", u"4:3", None))
         self.aspectRatioComboBox.setItemText(1, QCoreApplication.translate("MainWindow", u"16:9", None))
 
@@ -510,6 +525,15 @@ class Ui_MainWindow(object):
         self.aspectRatioComboBox.setToolTip(QCoreApplication.translate("MainWindow", u"<html><head/><body><p>Select aspect ratio for your camera</p></body></html>", None))
 #endif // QT_CONFIG(tooltip)
         self.aspectRatioComboBox.setPlaceholderText(QCoreApplication.translate("MainWindow", u"Select Aspect Ratio", None))
+        self.removeAllButton.setText(QCoreApplication.translate("MainWindow", u"Remove All Polygons", None))
+        self.deleteLastButton.setText(QCoreApplication.translate("MainWindow", u"Delete Last Polygon", None))
+        self.toggleStreamButton.setText(QCoreApplication.translate("MainWindow", u"Toggle Stream", None))
+        self.selectedCamLabel.setText(QCoreApplication.translate("MainWindow", u"Selected Camera: ", None))
+        self.completeButton.setText(QCoreApplication.translate("MainWindow", u"Complete Polygon", None))
+        self.runAIButton.setText(QCoreApplication.translate("MainWindow", u"Detect Parking Spots", None))
+        self.camViewLabel.setText("")
+        self.aiViewLabel.setText("")
+        self.carCountLabel.setText("")
         self.label_9.setText(QCoreApplication.translate("MainWindow", u"<html><head/><body><p align=\"center\">This page is for user authentication</p></body></html>", None))
     # retranslateUi
 
