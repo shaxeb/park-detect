@@ -1,7 +1,6 @@
 import json
 import sqlite3
 import sys
-import time
 
 import cv2
 import numpy as np
@@ -25,12 +24,15 @@ class Model:
         self.polygons = []
         self.labels = {}
         self.selected_camera_id = ""
+        self.prev_width = 0
+        self.prev_height = 0
 
 
 class Controller:
-    def __init__(self, model, view):
+    def __init__(self, model, view, main_window):
         self.model = model
         self.view = view
+        self.main_window = main_window
         self.video_thread = None
         self.video_processing_thread = None
 
@@ -61,8 +63,24 @@ class Controller:
         self.model.yolov5_model = torch.hub.load(
             'ultralytics/yolov5', 'yolov5s', pretrained=True
         )
+        print("YOLOv5 model loaded successfully.")
 
         self.view.runAIButton.clicked.connect(self.run_ai_button_clicked)
+        self.view.aspectRatioComboBox.addItem("16:9", (960, 540))
+        self.view.aspectRatioComboBox.addItem("4:3", (800, 600))
+        self.view.aspectRatioComboBox.currentIndexChanged.connect(self.change_aspect_ratio)
+        self.view.aspectRatioComboBox.setCurrentIndex(0)
+
+    def change_aspect_ratio(self, index):
+        aspect_ratio = self.view.aspectRatioComboBox.currentData()
+        width, height = aspect_ratio
+
+        if self.video_thread is not None:
+            self.video_thread.change_aspect_ratio(aspect_ratio)
+
+        # Resize the frame and drawing area in the UI
+        self.view.camViewLabel.setFixedSize(width, height)
+        self.view.drawingWidget.setGeometry(0, 0, width, height)
 
     def run_ai_button_clicked(self):
         selected_row = self.view.camTableWidget.currentRow()
@@ -73,6 +91,9 @@ class Controller:
                 self.start_ai_stream(camera_ip)
 
     def start_ai_stream(self, camera_ip):
+        self.model.selected_ip = camera_ip
+        self.model.polygons, self.model.labels = self.get_polygons(camera_ip)
+        self.view.stackedWidget.setCurrentWidget(self.view.aiPage)
         if self.video_processing_thread is not None:
             self.video_processing_thread.stop()
             self.video_processing_thread.wait()
@@ -82,11 +103,11 @@ class Controller:
 
         self.video_processing_worker = VideoProcessingWorker(
             camera_ip, self.model, self.model.polygons, self.model.labels)
+        self.video_processing_worker.frame_available.connect(
+            self.display_ai_frame)  # Connect frame_available signal to display_ai_frame
         self.video_processing_thread = QThread()
         self.video_processing_worker.moveToThread(self.video_processing_thread)
 
-        self.video_processing_worker.frame_available.connect(
-            self.display_ai_frame)
         self.video_processing_thread.started.connect(
             self.video_processing_worker.process_frame)
         self.video_processing_thread.finished.connect(
@@ -95,38 +116,87 @@ class Controller:
         self.video_processing_thread.start()
 
     def display_ai_frame(self, frame):
-        print("Polygons:", self.model.polygons)
-        print("Labels:", self.model.labels)
-        # Perform object detection on the frame using YOLOv5
-        results = self.model.yolov5_model(frame)
+        try:
+            print("Received frame for AI processing:", frame.shape)
+            results = self.model.yolov5_model(frame)
+            print("Object detection results:", results.pandas().xyxy[0])
 
-        car_count = 0
-        for index, row in results.pandas().xyxy[0].iterrows():
-            x1 = int(row['xmin'])
-            y1 = int(row['ymin'])
-            x2 = int(row['xmax'])
-            y2 = int(row['ymax'])
-            d = row['name']
-            cx = (x1 + x2) // 2
-            cy = (y1 + y2) // 2
-            if 'car' in d:
-                for area in self.model.polygons:
-                    if cv2.pointPolygonTest(np.array(area, np.int32), (cx, cy), False) >= 0:
-                        # Draw bounding box around the car
-                        cv2.rectangle(frame, (x1, y1),
-                                      (x2, y2), (0, 0, 255), 3)
-                        car_count += 1
+            car_count = 0
+            for index, row in results.pandas().xyxy[0].iterrows():
+                x1 = int(row['xmin'])
+                y1 = int(row['ymin'])
+                x2 = int(row['xmax'])
+                y2 = int(row['ymax'])
+                d = row['name']
+                cx = (x1 + x2) // 2
+                cy = (y1 + y2) // 2
+                if 'car' in d:
+                    for area in self.model.polygons:
+                        if cv2.pointPolygonTest(np.array(area, np.int32), (cx, cy), False) >= 0:
+                            # Draw bounding box around the car
+                            cv2.rectangle(frame, (x1, y1),
+                                          (x2, y2), (0, 0, 255), 3)
+                            car_count += 1
 
-        print("Number of cars detected:", car_count)
+            for i, area in enumerate(self.model.polygons):
+                cv2.polylines(frame, [np.array(area, np.int32)],
+                              True, (0, 255, 0), 2)  # Draw the defined areas
+                if i in self.model.labels:
+                    label = self.model.labels[i]
+                    label_position = (int(area[0][0]), int(area[0][1] - 10))
+                    cv2.putText(frame, label, label_position,
+                                cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2, cv2.LINE_AA)
 
-        # Convert the frame to QImage format
-        height, width, _ = frame.shape
-        bytes_per_line = 3 * width
-        q_image = QImage(frame.data, width, height,
-                         bytes_per_line, QImage.Format_RGB888)
+            print("Number of cars detected:", car_count)
 
-        # Display the frame in the AI view label
-        self.view.aiViewLabel.setPixmap(QPixmap.fromImage(q_image))
+            # Convert the frame to QImage format
+            frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+            q_image = QImage(
+                frame_rgb.data, frame_rgb.shape[1], frame_rgb.shape[0], QImage.Format_RGB888)
+
+            # Scale the QImage to fit the aiViewLabel size
+            scaled_image = q_image.scaled(
+                self.view.aiViewLabel.size(), Qt.AspectRatioMode.KeepAspectRatio)
+
+            # Create a QPixmap from the scaled QImage
+            pixmap = QPixmap.fromImage(scaled_image)
+
+            # Display the frame in the aiViewLabel
+            self.view.aiViewLabel.setPixmap(pixmap)
+        except Exception as e:
+            print("Error in display_ai_frame:", e)
+
+    def get_polygons(self, camera_ip):
+        try:
+            cursor = self.conn.cursor()
+            cursor.execute(
+                "SELECT polygon_data FROM Cameras WHERE ip_address = ?", (camera_ip,))
+            data = cursor.fetchone()
+
+            if data and data[0]:
+                polygon_data = json.loads(data[0])
+                polygons = []
+                labels = {}
+
+                for polygon_entry in polygon_data:
+                    coordinates = polygon_entry.get("coordinates")
+                    if coordinates:
+                        polygon = [(x, y) for x, y in coordinates]
+                        polygons.append(polygon)
+
+                    label = polygon_entry.get("label")
+                    if label:
+                        labels[len(polygons) - 1] = label
+
+                labels = {int(k): v for k, v in labels.items()}
+                return polygons, labels
+            else:
+                QMessageBox.warning(
+                    self.view, "No Polygons", "There are no polygons for the selected camera.")
+        except Exception as e:
+            print("Error retrieving polygons:", e)
+            QMessageBox.warning(
+                self.view, "Error", "An error occurred while retrieving polygons.")
 
     @Slot()
     def select_cam_button_clicked(self):
@@ -198,7 +268,7 @@ class Controller:
         frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
 
         # Resize the frame to fit the camViewLabel
-        width, height = 800, 600
+        width, height = 960, 540
         frame_resized = cv2.resize(frame_rgb, (width, height))
 
         # Convert the frame to QImage format
@@ -230,6 +300,7 @@ class VideoThread(QThread):
         self.paused = False
         self.mutex = QMutex()
         self.condition = QWaitCondition()
+        self.aspect_ratio = (960, 540)
 
     def run(self):
         cap = cv2.VideoCapture(self.ip)
@@ -238,11 +309,18 @@ class VideoThread(QThread):
         while self.running:
             ret, frame = cap.read()
             if ret:
+                frame = cv2.resize(frame, self.aspect_ratio)
                 self.frame_available.emit(frame)
 
             QApplication.processEvents()
 
         cap.release()
+
+    def change_aspect_ratio(self, aspect_ratio):
+        self.aspect_ratio = aspect_ratio
+        self.mutex.lock()
+        self.condition.wakeAll()
+        self.mutex.unlock()
 
     def dummy(self):
         pass
@@ -283,6 +361,7 @@ class VideoProcessingWorker(QObject):
         while self.running:
             ret, frame = cap.read()
             if ret:
+                print("Received frame:", frame.shape)
                 self.frame_available.emit(frame)
 
         cap.release()
@@ -331,7 +410,7 @@ class MainWindow(QMainWindow):
         self.ui.home_btn_2.setChecked(True)
 
         self.model = Model()
-        self.controller = Controller(self.model, self.ui)
+        self.controller = Controller(self.model, self.ui, self)
 
         self.model.current_index = 0
         self.ui.stackedWidget.setCurrentIndex(self.model.current_index)
@@ -363,11 +442,6 @@ class MainWindow(QMainWindow):
             self.ui.drawingWidget.remove_all_polygons)
 
         self.ui.aiViewLabel.clear()
-
-    def start_ai_stream(self, camera_ip):
-        self.model.selected_ip = camera_ip
-        self.model.polygons, self.model.labels = self.get_polygons()
-        self.ui.stackedWidget.setCurrentWidget(self.ui.aiPage)
 
     @Slot()
     def delete_last_polygon(self):
@@ -472,53 +546,6 @@ class MainWindow(QMainWindow):
         else:
             QMessageBox.warning(self, "No Row Selected",
                                 "Please select a row to delete.")
-
-    def get_polygons(self):
-        selected_row = self.view.camTableWidget.currentRow()
-        if selected_row >= 0:
-            ip_item = self.view.camTableWidget.item(selected_row, 1)
-            if ip_item:
-                camera_ip = ip_item.text()
-                print("Camera IP:", camera_ip)
-                try:
-                    cursor = self.conn.cursor()
-                    cursor.execute(
-                        "SELECT polygon_data FROM Cameras WHERE ip_address = ?", (camera_ip,))
-                    data = cursor.fetchone()
-
-                    if data and data[0]:
-                        polygon_data = json.loads(data[0])
-                        polygons = []
-                        labels = {}
-
-                        for polygon_entry in polygon_data:
-                            coordinates = polygon_entry.get("coordinates")
-                            if coordinates:
-                                polygon = [(x, y) for x, y in coordinates]
-                                polygons.append(polygon)
-
-                            label = polygon_entry.get("label")
-                            if label:
-                                labels[len(polygons) - 1] = label
-
-                        # Print polygons and labels for debugging
-                        print("Polygons:", polygons)
-                        print("Labels:", labels)
-
-                        return polygons, labels
-                    else:
-                        QMessageBox.warning(
-                            self.view, "No Polygons", "There are no polygons for the selected camera.")
-                except Exception as e:
-                    print("Error retrieving polygons:", e)
-                    QMessageBox.warning(
-                        self.view, "Error", "An error occurred while retrieving polygons.")
-            else:
-                QMessageBox.warning(
-                    self.view, "No Row Selected", "Please select a camera.")
-        else:
-            QMessageBox.warning(self.view, "No Row Selected",
-                                "Please select a camera.")
 
 
 if __name__ == "__main__":

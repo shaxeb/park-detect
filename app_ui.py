@@ -365,8 +365,6 @@ class Ui_MainWindow(object):
         self.gridLayout_2 = QGridLayout(self.editPage)
         self.gridLayout_2.setObjectName(u"gridLayout_2")
         self.aspectRatioComboBox = QComboBox(self.editPage)
-        self.aspectRatioComboBox.addItem("")
-        self.aspectRatioComboBox.addItem("")
         self.aspectRatioComboBox.setObjectName(u"aspectRatioComboBox")
         self.aspectRatioComboBox.setEditable(False)
 
@@ -518,9 +516,6 @@ class Ui_MainWindow(object):
 #endif // QT_CONFIG(tooltip)
         self.selectCamButton.setText(QCoreApplication.translate("MainWindow", u"Select camera\n"
 " for Annotation", None))
-        self.aspectRatioComboBox.setItemText(0, QCoreApplication.translate("MainWindow", u"4:3", None))
-        self.aspectRatioComboBox.setItemText(1, QCoreApplication.translate("MainWindow", u"16:9", None))
-
 #if QT_CONFIG(tooltip)
         self.aspectRatioComboBox.setToolTip(QCoreApplication.translate("MainWindow", u"<html><head/><body><p>Select aspect ratio for your camera</p></body></html>", None))
 #endif // QT_CONFIG(tooltip)
