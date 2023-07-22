@@ -35,6 +35,7 @@ class Controller:
         self.main_window = main_window
         self.video_thread = None
         self.video_processing_thread = None
+        self.ai_processing_thread = None
 
         self.view.home_btn_1.toggled.connect(lambda: self.on_button_toggled(0))
         self.view.home_btn_2.toggled.connect(lambda: self.on_button_toggled(0))
@@ -82,6 +83,7 @@ class Controller:
         self.view.camViewLabel.setFixedSize(width, height)
         self.view.drawingWidget.setGeometry(0, 0, width, height)
 
+    @Slot()
     def run_ai_button_clicked(self):
         selected_row = self.view.camTableWidget.currentRow()
         if selected_row >= 0:
@@ -101,62 +103,36 @@ class Controller:
 
         self.view.aiViewLabel.clear()
 
-        self.video_processing_worker = VideoProcessingWorker(
-            camera_ip, self.model, self.model.polygons, self.model.labels)
-        self.video_processing_worker.frame_available.connect(
-            self.display_ai_frame)  # Connect frame_available signal to display_ai_frame
-        self.video_processing_thread = QThread()
-        self.video_processing_worker.moveToThread(self.video_processing_thread)
+        # Initialize the AI processing thread (ai_processing_thread)
+        self.ai_processing_worker = AIProcessingWorker(
+            camera_ip, self.model, self.model.polygons, self.model.labels
+        )
+        self.ai_processing_worker.frame_available.connect(
+            self.display_ai_frame
+        )  # Connect frame_available signal to display_ai_frame
 
-        self.video_processing_thread.started.connect(
-            self.video_processing_worker.process_frame)
-        self.video_processing_thread.finished.connect(
-            self.video_processing_worker.deleteLater)
+        # Start the AI processing worker in a separate thread
+        self.ai_processing_thread = QThread()
+        self.ai_processing_worker.moveToThread(self.ai_processing_thread)
 
-        self.video_processing_thread.start()
+        self.ai_processing_thread.started.connect(self.ai_processing_worker.process_frame)
+        self.ai_processing_thread.finished.connect(self.ai_processing_worker.deleteLater)
+
+        self.ai_processing_thread.start()
+        
 
     def display_ai_frame(self, frame):
         try:
-            print("Received frame for AI processing:", frame.shape)
-            results = self.model.yolov5_model(frame)
-            print("Object detection results:", results.pandas().xyxy[0])
-
-            car_count = 0
-            for index, row in results.pandas().xyxy[0].iterrows():
-                x1 = int(row['xmin'])
-                y1 = int(row['ymin'])
-                x2 = int(row['xmax'])
-                y2 = int(row['ymax'])
-                d = row['name']
-                cx = (x1 + x2) // 2
-                cy = (y1 + y2) // 2
-                if 'car' in d:
-                    for area in self.model.polygons:
-                        if cv2.pointPolygonTest(np.array(area, np.int32), (cx, cy), False) >= 0:
-                            # Draw bounding box around the car
-                            cv2.rectangle(frame, (x1, y1),
-                                          (x2, y2), (0, 0, 255), 3)
-                            car_count += 1
-
-            for i, area in enumerate(self.model.polygons):
-                cv2.polylines(frame, [np.array(area, np.int32)],
-                              True, (0, 255, 0), 2)  # Draw the defined areas
-                if i in self.model.labels:
-                    label = self.model.labels[i]
-                    label_position = (int(area[0][0]), int(area[0][1] - 10))
-                    cv2.putText(frame, label, label_position,
-                                cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2, cv2.LINE_AA)
-
-            print("Number of cars detected:", car_count)
-
             # Convert the frame to QImage format
             frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
             q_image = QImage(
-                frame_rgb.data, frame_rgb.shape[1], frame_rgb.shape[0], QImage.Format_RGB888)
+                frame_rgb.data, frame_rgb.shape[1], frame_rgb.shape[0], QImage.Format_RGB888
+            )
 
             # Scale the QImage to fit the aiViewLabel size
             scaled_image = q_image.scaled(
-                self.view.aiViewLabel.size(), Qt.AspectRatioMode.KeepAspectRatio)
+                self.view.aiViewLabel.size(), Qt.AspectRatioMode.KeepAspectRatio
+            )
 
             # Create a QPixmap from the scaled QImage
             pixmap = QPixmap.fromImage(scaled_image)
@@ -259,6 +235,12 @@ class Controller:
             self.video_thread.stop()
             self.video_thread.wait()
             self.video_thread = None
+
+        if self.ai_processing_thread is not None:
+            self.ai_processing_worker.stop()
+            self.ai_processing_thread.quit()
+            self.ai_processing_thread.wait()
+            self.ai_processing_thread = None
 
         self.view.camViewLabel.clear()
 
@@ -395,6 +377,62 @@ class VideoProcessingThread(QThread):
     def stop(self):
         self.running = False
 
+class AIProcessingWorker(QObject):
+    frame_available = Signal(np.ndarray)
+
+    def __init__(self, camera_ip, model, polygons, labels):
+        super().__init__()
+        self.camera_ip = camera_ip
+        self.model = model
+        self.polygons = polygons
+        self.labels = labels
+        self.running = False
+
+    def process_frame(self):
+        cap = cv2.VideoCapture(self.camera_ip)
+        self.running = True
+
+        while self.running:
+            ret, frame = cap.read()
+            if ret:
+                print("Received frame for AI processing:", frame.shape)
+                results = self.model.yolov5_model(frame)
+                print("Object detection results:", results.pandas().xyxy[0])
+
+                car_count = 0
+                for index, row in results.pandas().xyxy[0].iterrows():
+                    x1 = int(row['xmin'])
+                    y1 = int(row['ymin'])
+                    x2 = int(row['xmax'])
+                    y2 = int(row['ymax'])
+                    d = row['name']
+                    cx = (x1 + x2) // 2
+                    cy = (y1 + y2) // 2
+                    if 'car' in d:
+                        for area in self.model.polygons:
+                            if cv2.pointPolygonTest(np.array(area, np.int32), (cx, cy), False) >= 0:
+                                # Draw bounding box around the car
+                                cv2.rectangle(frame, (x1, y1),
+                                            (x2, y2), (0, 0, 255), 3)
+                                car_count += 1
+
+                for i, area in enumerate(self.model.polygons):
+                    cv2.polylines(frame, [np.array(area, np.int32)],
+                                True, (0, 255, 0), 2)  # Draw the defined areas
+                    if i in self.model.labels:
+                        label = self.model.labels[i]
+                        label_position = (int(area[0][0]), int(area[0][1] - 10))
+                        cv2.putText(frame, label, label_position,
+                                    cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2, cv2.LINE_AA)
+
+                print("Number of cars detected:", car_count)
+                results = self.model.yolov5_model(frame)
+                self.frame_available.emit(frame)
+
+        cap.release()
+
+    def stop(self):
+        self.running = False
 
 class MainWindow(QMainWindow):
     def __init__(self):
