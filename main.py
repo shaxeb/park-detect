@@ -8,7 +8,7 @@ import torch
 from PySide6.QtCore import (QMutex, QObject, QThread, QWaitCondition, Signal,
                             Slot)
 from PySide6.QtGui import QImage, QPixmap, Qt
-from PySide6.QtWidgets import (QApplication, QMainWindow, QMessageBox,
+from PySide6.QtWidgets import (QApplication, QLabel, QMainWindow, QMessageBox,
                                QPushButton, QTableWidgetItem)
 
 from app_ui import Ui_MainWindow
@@ -26,6 +26,7 @@ class Model:
         self.selected_camera_id = ""
         self.prev_width = 0
         self.prev_height = 0
+        self.parking_status = {}
 
 
 class Controller:
@@ -69,8 +70,11 @@ class Controller:
         self.view.runAIButton.clicked.connect(self.run_ai_button_clicked)
         self.view.aspectRatioComboBox.addItem("16:9", (960, 540))
         self.view.aspectRatioComboBox.addItem("4:3", (800, 600))
-        self.view.aspectRatioComboBox.currentIndexChanged.connect(self.change_aspect_ratio)
+        self.view.aspectRatioComboBox.currentIndexChanged.connect(
+            self.change_aspect_ratio)
         self.view.aspectRatioComboBox.setCurrentIndex(0)
+
+        self.parking_status_labels = {}
 
     def change_aspect_ratio(self, index):
         aspect_ratio = self.view.aspectRatioComboBox.currentData()
@@ -106,10 +110,11 @@ class Controller:
         # Get the selected aspect ratio from the aspectRatioComboBox
         aspect_ratio_data = self.view.aspectRatioComboBox.currentData()
         width, height = aspect_ratio_data
-        
+
         # Initialize the AI processing thread (ai_processing_thread)
         self.ai_processing_worker = AIProcessingWorker(
-            camera_ip, self.model, self.model.polygons, self.model.labels, (width, height)
+            camera_ip, self.model, self.model.polygons, self.model.labels, (
+                width, height)
         )
         self.ai_processing_worker.frame_available.connect(
             self.display_ai_frame
@@ -119,13 +124,15 @@ class Controller:
         self.ai_processing_thread = QThread()
         self.ai_processing_worker.moveToThread(self.ai_processing_thread)
 
-        self.ai_processing_thread.started.connect(self.ai_processing_worker.process_frame)
-        self.ai_processing_thread.finished.connect(self.ai_processing_worker.deleteLater)
+        self.ai_processing_thread.started.connect(
+            self.ai_processing_worker.process_frame)
+        self.ai_processing_thread.finished.connect(
+            self.ai_processing_worker.deleteLater)
 
         self.ai_processing_thread.start()
-        
 
-    def display_ai_frame(self, frame):
+    @Slot(np.ndarray, dict)
+    def display_ai_frame(self, frame, parking_status):
         try:
             # Convert the frame to QImage format
             frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
@@ -143,6 +150,23 @@ class Controller:
 
             # Display the frame in the aiViewLabel
             self.view.aiViewLabel.setPixmap(pixmap)
+
+            # Update parking space status labels
+            label_offset_x = self.view.aiViewLabel.width() + 10
+            label_offset_y = 10
+            for i, area in enumerate(self.model.polygons):
+                label = self.model.labels.get(i, f"p{i}")
+                status_label = self.parking_status_labels.get(i)
+                if not status_label:
+                    status_label = QLabel(self.view.aiPage)
+                    status_label.setObjectName(f"parkingStatusLabel{i}")
+                    status_label.setGeometry(
+                        label_offset_x, label_offset_y + i * 25, 200, 20)
+                    self.parking_status_labels[i] = status_label
+
+                status = parking_status.get(label, "unknown")
+                status_label.setText(f"{label}: {status.capitalize()}")
+
         except Exception as e:
             print("Error in display_ai_frame:", e)
 
@@ -381,8 +405,9 @@ class VideoProcessingThread(QThread):
     def stop(self):
         self.running = False
 
+
 class AIProcessingWorker(QObject):
-    frame_available = Signal(np.ndarray)
+    frame_available = Signal(np.ndarray, dict)
 
     def __init__(self, camera_ip, model, polygons, labels, aspect_ratio):
         super().__init__()
@@ -429,36 +454,41 @@ class AIProcessingWorker(QObject):
                                   True, (0, 255, 0), 2)  # Draw the defined areas
                     if i in self.labels:
                         label = self.labels[i]
-                        label_position = (int(area[0][0]), int(area[0][1] - 10))
+                        label_position = (
+                            int(area[0][0]), int(area[0][1] - 10))
                         cv2.putText(frame_resized, label, label_position,
                                     cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2, cv2.LINE_AA)
 
-                        # Check parking space occupancy
-                        is_empty = True
-                        for index, row in results.pandas().xyxy[0].iterrows():
-                            x1 = int(row['xmin'])
-                            y1 = int(row['ymin'])
-                            x2 = int(row['xmax'])
-                            y2 = int(row['ymax'])
-                            cx = (x1 + x2) // 2
-                            cy = (y1 + y2) // 2
-                            if 'car' in row['name']:
-                                if cv2.pointPolygonTest(np.array(area, np.int32), (cx, cy), False) >= 0:
-                                    is_empty = False
-                                    break
+                        # Check parking space occupancy and update the parking_status dictionary
+                        for i, area in enumerate(self.polygons):
+                            is_empty = True
+                            for index, row in results.pandas().xyxy[0].iterrows():
+                                x1 = int(row['xmin'])
+                                y1 = int(row['ymin'])
+                                x2 = int(row['xmax'])
+                                y2 = int(row['ymax'])
+                                cx = (x1 + x2) // 2
+                                cy = (y1 + y2) // 2
+                                if 'car' in row['name']:
+                                    if cv2.pointPolygonTest(np.array(area, np.int32), (cx, cy), False) >= 0:
+                                        is_empty = False
+                                        break
 
-                        self.parking_status[label] = "empty" if is_empty else "full"
+                            label = self.labels.get(i, f"p{i}")
+                            self.parking_status[label] = "empty" if is_empty else "full"
 
-                print("Total empty spaces:", list(self.parking_status.values()).count("empty"), "/", len(self.parking_status))
+                print("Total empty spaces:", list(self.parking_status.values()).count(
+                    "empty"), "/", len(self.parking_status))
                 for label, status in self.parking_status.items():
                     print(f"{label}: {status}")
 
-                self.frame_available.emit(frame_resized)
+                self.frame_available.emit(frame_resized, self.parking_status)
 
         cap.release()
 
     def stop(self):
         self.running = False
+
 
 class MainWindow(QMainWindow):
     def __init__(self):
