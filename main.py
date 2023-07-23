@@ -103,9 +103,13 @@ class Controller:
 
         self.view.aiViewLabel.clear()
 
+        # Get the selected aspect ratio from the aspectRatioComboBox
+        aspect_ratio_data = self.view.aspectRatioComboBox.currentData()
+        width, height = aspect_ratio_data
+        
         # Initialize the AI processing thread (ai_processing_thread)
         self.ai_processing_worker = AIProcessingWorker(
-            camera_ip, self.model, self.model.polygons, self.model.labels
+            camera_ip, self.model, self.model.polygons, self.model.labels, (width, height)
         )
         self.ai_processing_worker.frame_available.connect(
             self.display_ai_frame
@@ -380,13 +384,15 @@ class VideoProcessingThread(QThread):
 class AIProcessingWorker(QObject):
     frame_available = Signal(np.ndarray)
 
-    def __init__(self, camera_ip, model, polygons, labels):
+    def __init__(self, camera_ip, model, polygons, labels, aspect_ratio):
         super().__init__()
         self.camera_ip = camera_ip
         self.model = model
         self.polygons = polygons
         self.labels = labels
+        self.aspect_ratio = aspect_ratio
         self.running = False
+        self.parking_status = {}
 
     def process_frame(self):
         cap = cv2.VideoCapture(self.camera_ip)
@@ -395,9 +401,11 @@ class AIProcessingWorker(QObject):
         while self.running:
             ret, frame = cap.read()
             if ret:
-                print("Received frame for AI processing:", frame.shape)
-                results = self.model.yolov5_model(frame)
-                print("Object detection results:", results.pandas().xyxy[0])
+                # Resize the frame to the selected aspect ratio
+                width, height = self.aspect_ratio
+                frame_resized = cv2.resize(frame, (width, height))
+
+                results = self.model.yolov5_model(frame_resized)
 
                 car_count = 0
                 for index, row in results.pandas().xyxy[0].iterrows():
@@ -409,25 +417,43 @@ class AIProcessingWorker(QObject):
                     cx = (x1 + x2) // 2
                     cy = (y1 + y2) // 2
                     if 'car' in d:
-                        for area in self.model.polygons:
+                        for area in self.polygons:
                             if cv2.pointPolygonTest(np.array(area, np.int32), (cx, cy), False) >= 0:
                                 # Draw bounding box around the car
-                                cv2.rectangle(frame, (x1, y1),
-                                            (x2, y2), (0, 0, 255), 3)
+                                cv2.rectangle(frame_resized, (x1, y1),
+                                              (x2, y2), (0, 0, 255), 3)
                                 car_count += 1
 
-                for i, area in enumerate(self.model.polygons):
-                    cv2.polylines(frame, [np.array(area, np.int32)],
-                                True, (0, 255, 0), 2)  # Draw the defined areas
-                    if i in self.model.labels:
-                        label = self.model.labels[i]
+                for i, area in enumerate(self.polygons):
+                    cv2.polylines(frame_resized, [np.array(area, np.int32)],
+                                  True, (0, 255, 0), 2)  # Draw the defined areas
+                    if i in self.labels:
+                        label = self.labels[i]
                         label_position = (int(area[0][0]), int(area[0][1] - 10))
-                        cv2.putText(frame, label, label_position,
+                        cv2.putText(frame_resized, label, label_position,
                                     cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2, cv2.LINE_AA)
 
-                print("Number of cars detected:", car_count)
-                results = self.model.yolov5_model(frame)
-                self.frame_available.emit(frame)
+                        # Check parking space occupancy
+                        is_empty = True
+                        for index, row in results.pandas().xyxy[0].iterrows():
+                            x1 = int(row['xmin'])
+                            y1 = int(row['ymin'])
+                            x2 = int(row['xmax'])
+                            y2 = int(row['ymax'])
+                            cx = (x1 + x2) // 2
+                            cy = (y1 + y2) // 2
+                            if 'car' in row['name']:
+                                if cv2.pointPolygonTest(np.array(area, np.int32), (cx, cy), False) >= 0:
+                                    is_empty = False
+                                    break
+
+                        self.parking_status[label] = "empty" if is_empty else "full"
+
+                print("Total empty spaces:", list(self.parking_status.values()).count("empty"), "/", len(self.parking_status))
+                for label, status in self.parking_status.items():
+                    print(f"{label}: {status}")
+
+                self.frame_available.emit(frame_resized)
 
         cap.release()
 
