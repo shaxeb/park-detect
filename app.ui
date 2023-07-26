@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1014</width>
+    <width>1254</width>
     <height>697</height>
    </rect>
   </property>
@@ -539,7 +539,7 @@
        <item>
         <widget class="QStackedWidget" name="stackedWidget">
          <property name="currentIndex">
-          <number>3</number>
+          <number>2</number>
          </property>
          <widget class="QWidget" name="homePage">
           <layout class="QGridLayout" name="gridLayout_6">
@@ -825,19 +825,16 @@
              </property>
             </widget>
            </item>
-           <item row="0" column="0" rowspan="11" colspan="2">
-            <widget class="QLabel" name="aiViewLabel">
+           <item row="0" column="2">
+            <widget class="QLabel" name="parkingStatusLabel0">
              <property name="maximumSize">
               <size>
-               <width>1280</width>
-               <height>720</height>
+               <width>200</width>
+               <height>30</height>
               </size>
              </property>
              <property name="text">
               <string/>
-             </property>
-             <property name="scaledContents">
-              <bool>true</bool>
              </property>
             </widget>
            </item>
@@ -867,21 +864,8 @@
              </property>
             </widget>
            </item>
-           <item row="8" column="2">
-            <widget class="QLabel" name="parkingStatusLabel8">
-             <property name="maximumSize">
-              <size>
-               <width>200</width>
-               <height>30</height>
-              </size>
-             </property>
-             <property name="text">
-              <string/>
-             </property>
-            </widget>
-           </item>
-           <item row="7" column="2">
-            <widget class="QLabel" name="parkingStatusLabel7">
+           <item row="1" column="3">
+            <widget class="QLabel" name="parkingDurationLabel1">
              <property name="maximumSize">
               <size>
                <width>200</width>
@@ -906,21 +890,8 @@
              </property>
             </widget>
            </item>
-           <item row="9" column="2">
-            <widget class="QLabel" name="parkingStatusLabel9">
-             <property name="maximumSize">
-              <size>
-               <width>200</width>
-               <height>30</height>
-              </size>
-             </property>
-             <property name="text">
-              <string/>
-             </property>
-            </widget>
-           </item>
-           <item row="5" column="2">
-            <widget class="QLabel" name="parkingStatusLabel5">
+           <item row="10" column="2">
+            <widget class="QLabel" name="parkingOccupancyLabel">
              <property name="maximumSize">
               <size>
                <width>200</width>
@@ -945,8 +916,180 @@
              </property>
             </widget>
            </item>
-           <item row="0" column="2">
-            <widget class="QLabel" name="parkingStatusLabel0">
+           <item row="9" column="2">
+            <widget class="QLabel" name="parkingStatusLabel9">
+             <property name="maximumSize">
+              <size>
+               <width>200</width>
+               <height>30</height>
+              </size>
+             </property>
+             <property name="text">
+              <string/>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="3">
+            <widget class="QLabel" name="parkingDurationLabel0">
+             <property name="maximumSize">
+              <size>
+               <width>200</width>
+               <height>30</height>
+              </size>
+             </property>
+             <property name="text">
+              <string/>
+             </property>
+            </widget>
+           </item>
+           <item row="7" column="2">
+            <widget class="QLabel" name="parkingStatusLabel7">
+             <property name="maximumSize">
+              <size>
+               <width>200</width>
+               <height>30</height>
+              </size>
+             </property>
+             <property name="text">
+              <string/>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="0" rowspan="12" colspan="2">
+            <widget class="QLabel" name="aiViewLabel">
+             <property name="maximumSize">
+              <size>
+               <width>1280</width>
+               <height>720</height>
+              </size>
+             </property>
+             <property name="text">
+              <string/>
+             </property>
+             <property name="scaledContents">
+              <bool>true</bool>
+             </property>
+            </widget>
+           </item>
+           <item row="8" column="2">
+            <widget class="QLabel" name="parkingStatusLabel8">
+             <property name="maximumSize">
+              <size>
+               <width>200</width>
+               <height>30</height>
+              </size>
+             </property>
+             <property name="text">
+              <string/>
+             </property>
+            </widget>
+           </item>
+           <item row="5" column="2">
+            <widget class="QLabel" name="parkingStatusLabel5">
+             <property name="maximumSize">
+              <size>
+               <width>200</width>
+               <height>30</height>
+              </size>
+             </property>
+             <property name="text">
+              <string/>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="3">
+            <widget class="QLabel" name="parkingDurationLabel2">
+             <property name="maximumSize">
+              <size>
+               <width>200</width>
+               <height>30</height>
+              </size>
+             </property>
+             <property name="text">
+              <string/>
+             </property>
+            </widget>
+           </item>
+           <item row="3" column="3">
+            <widget class="QLabel" name="parkingDurationLabel3">
+             <property name="maximumSize">
+              <size>
+               <width>200</width>
+               <height>30</height>
+              </size>
+             </property>
+             <property name="text">
+              <string/>
+             </property>
+            </widget>
+           </item>
+           <item row="4" column="3">
+            <widget class="QLabel" name="parkingDurationLabel4">
+             <property name="maximumSize">
+              <size>
+               <width>200</width>
+               <height>30</height>
+              </size>
+             </property>
+             <property name="text">
+              <string/>
+             </property>
+            </widget>
+           </item>
+           <item row="5" column="3">
+            <widget class="QLabel" name="parkingDurationLabel5">
+             <property name="maximumSize">
+              <size>
+               <width>200</width>
+               <height>30</height>
+              </size>
+             </property>
+             <property name="text">
+              <string/>
+             </property>
+            </widget>
+           </item>
+           <item row="6" column="3">
+            <widget class="QLabel" name="parkingDurationLabel6">
+             <property name="maximumSize">
+              <size>
+               <width>200</width>
+               <height>30</height>
+              </size>
+             </property>
+             <property name="text">
+              <string/>
+             </property>
+            </widget>
+           </item>
+           <item row="7" column="3">
+            <widget class="QLabel" name="parkingDurationLabel7">
+             <property name="maximumSize">
+              <size>
+               <width>200</width>
+               <height>30</height>
+              </size>
+             </property>
+             <property name="text">
+              <string/>
+             </property>
+            </widget>
+           </item>
+           <item row="8" column="3">
+            <widget class="QLabel" name="parkingDurationLabel8">
+             <property name="maximumSize">
+              <size>
+               <width>200</width>
+               <height>30</height>
+              </size>
+             </property>
+             <property name="text">
+              <string/>
+             </property>
+            </widget>
+           </item>
+           <item row="9" column="3">
+            <widget class="QLabel" name="parkingDurationLabel9">
              <property name="maximumSize">
               <size>
                <width>200</width>

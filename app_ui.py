@@ -25,7 +25,7 @@ class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         if not MainWindow.objectName():
             MainWindow.setObjectName(u"MainWindow")
-        MainWindow.resize(1014, 697)
+        MainWindow.resize(1254, 697)
         self.centralwidget = QWidget(MainWindow)
         self.centralwidget.setObjectName(u"centralwidget")
         self.gridLayout = QGridLayout(self.centralwidget)
@@ -421,12 +421,11 @@ class Ui_MainWindow(object):
 
         self.gridLayout_4.addWidget(self.parkingStatusLabel3, 3, 2, 1, 1)
 
-        self.aiViewLabel = QLabel(self.aiPage)
-        self.aiViewLabel.setObjectName(u"aiViewLabel")
-        self.aiViewLabel.setMaximumSize(QSize(1280, 720))
-        self.aiViewLabel.setScaledContents(True)
+        self.parkingStatusLabel0 = QLabel(self.aiPage)
+        self.parkingStatusLabel0.setObjectName(u"parkingStatusLabel0")
+        self.parkingStatusLabel0.setMaximumSize(QSize(200, 30))
 
-        self.gridLayout_4.addWidget(self.aiViewLabel, 0, 0, 11, 2)
+        self.gridLayout_4.addWidget(self.parkingStatusLabel0, 0, 2, 1, 1)
 
         self.parkingStatusLabel4 = QLabel(self.aiPage)
         self.parkingStatusLabel4.setObjectName(u"parkingStatusLabel4")
@@ -440,17 +439,11 @@ class Ui_MainWindow(object):
 
         self.gridLayout_4.addWidget(self.parkingStatusLabel6, 6, 2, 1, 1)
 
-        self.parkingStatusLabel8 = QLabel(self.aiPage)
-        self.parkingStatusLabel8.setObjectName(u"parkingStatusLabel8")
-        self.parkingStatusLabel8.setMaximumSize(QSize(200, 30))
+        self.parkingDurationLabel1 = QLabel(self.aiPage)
+        self.parkingDurationLabel1.setObjectName(u"parkingDurationLabel1")
+        self.parkingDurationLabel1.setMaximumSize(QSize(200, 30))
 
-        self.gridLayout_4.addWidget(self.parkingStatusLabel8, 8, 2, 1, 1)
-
-        self.parkingStatusLabel7 = QLabel(self.aiPage)
-        self.parkingStatusLabel7.setObjectName(u"parkingStatusLabel7")
-        self.parkingStatusLabel7.setMaximumSize(QSize(200, 30))
-
-        self.gridLayout_4.addWidget(self.parkingStatusLabel7, 7, 2, 1, 1)
+        self.gridLayout_4.addWidget(self.parkingDurationLabel1, 1, 3, 1, 1)
 
         self.parkingStatusLabel2 = QLabel(self.aiPage)
         self.parkingStatusLabel2.setObjectName(u"parkingStatusLabel2")
@@ -458,17 +451,11 @@ class Ui_MainWindow(object):
 
         self.gridLayout_4.addWidget(self.parkingStatusLabel2, 2, 2, 1, 1)
 
-        self.parkingStatusLabel9 = QLabel(self.aiPage)
-        self.parkingStatusLabel9.setObjectName(u"parkingStatusLabel9")
-        self.parkingStatusLabel9.setMaximumSize(QSize(200, 30))
+        self.parkingOccupancyLabel = QLabel(self.aiPage)
+        self.parkingOccupancyLabel.setObjectName(u"parkingOccupancyLabel")
+        self.parkingOccupancyLabel.setMaximumSize(QSize(200, 30))
 
-        self.gridLayout_4.addWidget(self.parkingStatusLabel9, 9, 2, 1, 1)
-
-        self.parkingStatusLabel5 = QLabel(self.aiPage)
-        self.parkingStatusLabel5.setObjectName(u"parkingStatusLabel5")
-        self.parkingStatusLabel5.setMaximumSize(QSize(200, 30))
-
-        self.gridLayout_4.addWidget(self.parkingStatusLabel5, 5, 2, 1, 1)
+        self.gridLayout_4.addWidget(self.parkingOccupancyLabel, 10, 2, 1, 1)
 
         self.parkingStatusLabel1 = QLabel(self.aiPage)
         self.parkingStatusLabel1.setObjectName(u"parkingStatusLabel1")
@@ -476,11 +463,90 @@ class Ui_MainWindow(object):
 
         self.gridLayout_4.addWidget(self.parkingStatusLabel1, 1, 2, 1, 1)
 
-        self.parkingStatusLabel0 = QLabel(self.aiPage)
-        self.parkingStatusLabel0.setObjectName(u"parkingStatusLabel0")
-        self.parkingStatusLabel0.setMaximumSize(QSize(200, 30))
+        self.parkingStatusLabel9 = QLabel(self.aiPage)
+        self.parkingStatusLabel9.setObjectName(u"parkingStatusLabel9")
+        self.parkingStatusLabel9.setMaximumSize(QSize(200, 30))
 
-        self.gridLayout_4.addWidget(self.parkingStatusLabel0, 0, 2, 1, 1)
+        self.gridLayout_4.addWidget(self.parkingStatusLabel9, 9, 2, 1, 1)
+
+        self.parkingDurationLabel0 = QLabel(self.aiPage)
+        self.parkingDurationLabel0.setObjectName(u"parkingDurationLabel0")
+        self.parkingDurationLabel0.setMaximumSize(QSize(200, 30))
+
+        self.gridLayout_4.addWidget(self.parkingDurationLabel0, 0, 3, 1, 1)
+
+        self.parkingStatusLabel7 = QLabel(self.aiPage)
+        self.parkingStatusLabel7.setObjectName(u"parkingStatusLabel7")
+        self.parkingStatusLabel7.setMaximumSize(QSize(200, 30))
+
+        self.gridLayout_4.addWidget(self.parkingStatusLabel7, 7, 2, 1, 1)
+
+        self.aiViewLabel = QLabel(self.aiPage)
+        self.aiViewLabel.setObjectName(u"aiViewLabel")
+        self.aiViewLabel.setMaximumSize(QSize(1280, 720))
+        self.aiViewLabel.setScaledContents(True)
+
+        self.gridLayout_4.addWidget(self.aiViewLabel, 0, 0, 12, 2)
+
+        self.parkingStatusLabel8 = QLabel(self.aiPage)
+        self.parkingStatusLabel8.setObjectName(u"parkingStatusLabel8")
+        self.parkingStatusLabel8.setMaximumSize(QSize(200, 30))
+
+        self.gridLayout_4.addWidget(self.parkingStatusLabel8, 8, 2, 1, 1)
+
+        self.parkingStatusLabel5 = QLabel(self.aiPage)
+        self.parkingStatusLabel5.setObjectName(u"parkingStatusLabel5")
+        self.parkingStatusLabel5.setMaximumSize(QSize(200, 30))
+
+        self.gridLayout_4.addWidget(self.parkingStatusLabel5, 5, 2, 1, 1)
+
+        self.parkingDurationLabel2 = QLabel(self.aiPage)
+        self.parkingDurationLabel2.setObjectName(u"parkingDurationLabel2")
+        self.parkingDurationLabel2.setMaximumSize(QSize(200, 30))
+
+        self.gridLayout_4.addWidget(self.parkingDurationLabel2, 2, 3, 1, 1)
+
+        self.parkingDurationLabel3 = QLabel(self.aiPage)
+        self.parkingDurationLabel3.setObjectName(u"parkingDurationLabel3")
+        self.parkingDurationLabel3.setMaximumSize(QSize(200, 30))
+
+        self.gridLayout_4.addWidget(self.parkingDurationLabel3, 3, 3, 1, 1)
+
+        self.parkingDurationLabel4 = QLabel(self.aiPage)
+        self.parkingDurationLabel4.setObjectName(u"parkingDurationLabel4")
+        self.parkingDurationLabel4.setMaximumSize(QSize(200, 30))
+
+        self.gridLayout_4.addWidget(self.parkingDurationLabel4, 4, 3, 1, 1)
+
+        self.parkingDurationLabel5 = QLabel(self.aiPage)
+        self.parkingDurationLabel5.setObjectName(u"parkingDurationLabel5")
+        self.parkingDurationLabel5.setMaximumSize(QSize(200, 30))
+
+        self.gridLayout_4.addWidget(self.parkingDurationLabel5, 5, 3, 1, 1)
+
+        self.parkingDurationLabel6 = QLabel(self.aiPage)
+        self.parkingDurationLabel6.setObjectName(u"parkingDurationLabel6")
+        self.parkingDurationLabel6.setMaximumSize(QSize(200, 30))
+
+        self.gridLayout_4.addWidget(self.parkingDurationLabel6, 6, 3, 1, 1)
+
+        self.parkingDurationLabel7 = QLabel(self.aiPage)
+        self.parkingDurationLabel7.setObjectName(u"parkingDurationLabel7")
+        self.parkingDurationLabel7.setMaximumSize(QSize(200, 30))
+
+        self.gridLayout_4.addWidget(self.parkingDurationLabel7, 7, 3, 1, 1)
+
+        self.parkingDurationLabel8 = QLabel(self.aiPage)
+        self.parkingDurationLabel8.setObjectName(u"parkingDurationLabel8")
+        self.parkingDurationLabel8.setMaximumSize(QSize(200, 30))
+
+        self.gridLayout_4.addWidget(self.parkingDurationLabel8, 8, 3, 1, 1)
+
+        self.parkingDurationLabel9 = QLabel(self.aiPage)
+        self.parkingDurationLabel9.setObjectName(u"parkingDurationLabel9")
+        self.parkingDurationLabel9.setMaximumSize(QSize(200, 30))
+
+        self.gridLayout_4.addWidget(self.parkingDurationLabel9, 9, 3, 1, 1)
 
         self.stackedWidget.addWidget(self.aiPage)
         self.userPage = QWidget()
@@ -516,7 +582,7 @@ class Ui_MainWindow(object):
         self.ai_btn_1.toggled.connect(self.ai_btn_2.setChecked)
         self.ai_btn_2.toggled.connect(self.ai_btn_1.setChecked)
 
-        self.stackedWidget.setCurrentIndex(3)
+        self.stackedWidget.setCurrentIndex(2)
 
 
         QMetaObject.connectSlotsByName(MainWindow)
@@ -582,16 +648,27 @@ class Ui_MainWindow(object):
         self.runAIButton.setText(QCoreApplication.translate("MainWindow", u"Detect Parking Spots", None))
         self.camViewLabel.setText("")
         self.parkingStatusLabel3.setText("")
-        self.aiViewLabel.setText("")
+        self.parkingStatusLabel0.setText("")
         self.parkingStatusLabel4.setText("")
         self.parkingStatusLabel6.setText("")
-        self.parkingStatusLabel8.setText("")
-        self.parkingStatusLabel7.setText("")
+        self.parkingDurationLabel1.setText("")
         self.parkingStatusLabel2.setText("")
-        self.parkingStatusLabel9.setText("")
-        self.parkingStatusLabel5.setText("")
+        self.parkingOccupancyLabel.setText("")
         self.parkingStatusLabel1.setText("")
-        self.parkingStatusLabel0.setText("")
+        self.parkingStatusLabel9.setText("")
+        self.parkingDurationLabel0.setText("")
+        self.parkingStatusLabel7.setText("")
+        self.aiViewLabel.setText("")
+        self.parkingStatusLabel8.setText("")
+        self.parkingStatusLabel5.setText("")
+        self.parkingDurationLabel2.setText("")
+        self.parkingDurationLabel3.setText("")
+        self.parkingDurationLabel4.setText("")
+        self.parkingDurationLabel5.setText("")
+        self.parkingDurationLabel6.setText("")
+        self.parkingDurationLabel7.setText("")
+        self.parkingDurationLabel8.setText("")
+        self.parkingDurationLabel9.setText("")
         self.label_9.setText(QCoreApplication.translate("MainWindow", u"<html><head/><body><p align=\"center\">This page is for user authentication</p></body></html>", None))
     # retranslateUi
 

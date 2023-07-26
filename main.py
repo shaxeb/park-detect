@@ -80,12 +80,18 @@ class Controller:
         aspect_ratio = self.view.aspectRatioComboBox.currentData()
         width, height = aspect_ratio
 
-        if self.video_thread is not None:
-            self.video_thread.change_aspect_ratio(aspect_ratio)
-
         # Resize the frame and drawing area in the UI
         self.view.camViewLabel.setFixedSize(width, height)
         self.view.drawingWidget.setGeometry(0, 0, width, height)
+        self.view.aiViewLabel.setFixedSize(width, height)  # Set aiViewLabel size
+
+        # Start the video thread with the new aspect ratio
+        if self.video_thread is not None:
+            self.video_thread.change_aspect_ratio(aspect_ratio)
+
+        # Notify the AI processing thread about the new aspect ratio
+        if self.ai_processing_thread is not None:
+            self.ai_processing_thread.change_aspect_ratio(aspect_ratio)
 
     @Slot()
     def run_ai_button_clicked(self):
@@ -113,8 +119,7 @@ class Controller:
 
         # Initialize the AI processing thread (ai_processing_thread)
         self.ai_processing_worker = AIProcessingWorker(
-            camera_ip, self.model, self.model.polygons, self.model.labels, (
-                width, height)
+            camera_ip, self.model, self.model.polygons, self.model.labels, width, height
         )
         self.ai_processing_worker.frame_available.connect(
             self.display_ai_frame
@@ -132,7 +137,7 @@ class Controller:
         self.ai_processing_thread.start()
 
     @Slot(np.ndarray, dict)
-    def display_ai_frame(self, frame, parking_status):
+    def display_ai_frame(self, frame, parking_status, occupancy_rate):
         try:
             # Convert the frame to QImage format
             frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
@@ -140,9 +145,13 @@ class Controller:
                 frame_rgb.data, frame_rgb.shape[1], frame_rgb.shape[0], QImage.Format_RGB888
             )
 
-            # Scale the QImage to fit the aiViewLabel size
+            # Get the selected aspect ratio from the aspectRatioComboBox
+            aspect_ratio_data = self.view.aspectRatioComboBox.currentData()
+            width, height = aspect_ratio_data
+
+            # Scale the QImage to fit the aiViewLabel size while maintaining the aspect ratio
             scaled_image = q_image.scaled(
-                self.view.aiViewLabel.size(), Qt.AspectRatioMode.KeepAspectRatio
+                self.view.aiViewLabel.size(), Qt.AspectRatioMode.KeepAspectRatio, Qt.SmoothTransformation
             )
 
             # Create a QPixmap from the scaled QImage
@@ -166,6 +175,10 @@ class Controller:
 
                 status = parking_status.get(label, "unknown")
                 status_label.setText(f"{label}: {status.capitalize()}")
+                # Display the occupancy rate in a QLabel on the GUI
+                occupancy_label = self.view.parkingOccupancyLabel
+                occupancy_label.setText(
+                    f"Occupancy Rate: {occupancy_rate:.2f}%")
 
         except Exception as e:
             print("Error in display_ai_frame:", e)
@@ -407,15 +420,15 @@ class VideoProcessingThread(QThread):
 
 
 class AIProcessingWorker(QObject):
-    frame_available = Signal(np.ndarray, dict)
+    frame_available = Signal(np.ndarray, dict, float)
 
-    def __init__(self, camera_ip, model, polygons, labels, aspect_ratio):
+    def __init__(self, camera_ip, model, polygons, labels, width, height):
         super().__init__()
         self.camera_ip = camera_ip
         self.model = model
         self.polygons = polygons
         self.labels = labels
-        self.aspect_ratio = aspect_ratio
+        self.aspect_ratio = (width, height)
         self.running = False
         self.parking_status = {}
 
@@ -482,7 +495,13 @@ class AIProcessingWorker(QObject):
                 for label, status in self.parking_status.items():
                     print(f"{label}: {status}")
 
-                self.frame_available.emit(frame_resized, self.parking_status)
+                total_spaces = len(self.parking_status)
+                occupied_spaces = list(
+                    self.parking_status.values()).count("full")
+                occupancy_rate = (occupied_spaces / total_spaces) * 100
+
+                self.frame_available.emit(
+                    frame_resized, self.parking_status, occupancy_rate)
 
         cap.release()
 
