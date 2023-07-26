@@ -506,7 +506,7 @@ class AIProcessingWorker(QObject):
                                     break
 
                         label = self.labels.get(i, f"p{i}")
-                        self.parking_status[label] = "empty" if is_empty else "full"
+                        self.parking_status[label] = "empty" if is_empty else "occupied"
                         # Change color to red if the polygon is not empty
                         if not is_empty:
                             color = (0, 0, 255)
@@ -518,7 +518,7 @@ class AIProcessingWorker(QObject):
                         cv2.putText(frame_resized, label, label_position, cv2.FONT_HERSHEY_SIMPLEX, 0.7, color, 2, cv2.LINE_AA)
 
                 total_spaces = len(self.parking_status)
-                occupied_spaces = list(self.parking_status.values()).count("full")
+                occupied_spaces = list(self.parking_status.values()).count("occupied")
                 occupancy_rate = (occupied_spaces / total_spaces) * 100
 
                 self.frame_available.emit(frame_resized, self.parking_status, occupancy_rate)
