@@ -136,23 +136,19 @@ class Controller:
 
         self.ai_processing_thread.start()
 
-    @Slot(np.ndarray, dict)
+    @Slot(np.ndarray, dict, float)
     def display_ai_frame(self, frame, parking_status, occupancy_rate):
         try:
             # Convert the frame to QImage format
             frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-            q_image = QImage(
-                frame_rgb.data, frame_rgb.shape[1], frame_rgb.shape[0], QImage.Format_RGB888
-            )
+            q_image = QImage(frame_rgb.data, frame_rgb.shape[1], frame_rgb.shape[0], QImage.Format_RGB888)
 
             # Get the selected aspect ratio from the aspectRatioComboBox
             aspect_ratio_data = self.view.aspectRatioComboBox.currentData()
             width, height = aspect_ratio_data
 
             # Scale the QImage to fit the aiViewLabel size while maintaining the aspect ratio
-            scaled_image = q_image.scaled(
-                self.view.aiViewLabel.size(), Qt.AspectRatioMode.KeepAspectRatio, Qt.SmoothTransformation
-            )
+            scaled_image = q_image.scaled(self.view.aiViewLabel.size(), Qt.AspectRatioMode.KeepAspectRatio, Qt.SmoothTransformation)
 
             # Create a QPixmap from the scaled QImage
             pixmap = QPixmap.fromImage(scaled_image)
@@ -169,16 +165,41 @@ class Controller:
                 if not status_label:
                     status_label = QLabel(self.view.aiPage)
                     status_label.setObjectName(f"parkingStatusLabel{i}")
-                    status_label.setGeometry(
-                        label_offset_x, label_offset_y + i * 25, 200, 20)
+                    status_label.setGeometry(label_offset_x, label_offset_y + i * 25, 200, 20)
                     self.parking_status_labels[i] = status_label
 
                 status = parking_status.get(label, "unknown")
                 status_label.setText(f"{label}: {status.capitalize()}")
-                # Display the occupancy rate in a QLabel on the GUI
-                occupancy_label = self.view.parkingOccupancyLabel
-                occupancy_label.setText(
-                    f"Occupancy Rate: {occupancy_rate:.2f}%")
+
+                # Change the color of the polygon and label
+                color = (0, 255, 0)  # Green
+                if not status.startswith("empty"):
+                    color = (0, 0, 255)  # Red
+
+                # Draw the polygon with the updated color
+                cv2.polylines(frame, [np.array(area, np.int32)], True, color, 2)
+                if i in self.model.labels:
+                    label_position = (int(area[0][0]), int(area[0][1] - 10))
+                    cv2.putText(frame, label, label_position, cv2.FONT_HERSHEY_SIMPLEX, 0.7, color, 2, cv2.LINE_AA)
+
+            # Convert the frame back to RGB format for displaying in the UI
+            frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+
+            # Convert the updated frame to QImage format
+            q_image = QImage(frame_rgb.data, frame_rgb.shape[1], frame_rgb.shape[0], QImage.Format_RGB888)
+
+            # Scale the QImage to fit the aiViewLabel size while maintaining the aspect ratio
+            scaled_image = q_image.scaled(self.view.aiViewLabel.size(), Qt.AspectRatioMode.KeepAspectRatio, Qt.SmoothTransformation)
+
+            # Create a QPixmap from the scaled QImage
+            pixmap = QPixmap.fromImage(scaled_image)
+
+            # Display the updated frame in the aiViewLabel
+            self.view.aiViewLabel.setPixmap(pixmap)
+
+            # Display the occupancy rate in a QLabel on the GUI
+            occupancy_label = self.view.parkingOccupancyLabel
+            occupancy_label.setText(f"Occupancy Rate: {occupancy_rate:.2f}%")
 
         except Exception as e:
             print("Error in display_ai_frame:", e)
@@ -455,7 +476,7 @@ class AIProcessingWorker(QObject):
                     cx = (x1 + x2) // 2
                     cy = (y1 + y2) // 2
                     if 'car' in d:
-                        for area in self.polygons:
+                        for i, area in enumerate(self.polygons):
                             if cv2.pointPolygonTest(np.array(area, np.int32), (cx, cy), False) >= 0:
                                 # Draw bounding box around the car
                                 cv2.rectangle(frame_resized, (x1, y1),
@@ -463,45 +484,44 @@ class AIProcessingWorker(QObject):
                                 car_count += 1
 
                 for i, area in enumerate(self.polygons):
-                    cv2.polylines(frame_resized, [np.array(area, np.int32)],
-                                  True, (0, 255, 0), 2)  # Draw the defined areas
+                    color = (0, 255, 0)  # Default color: Green
+                    cv2.polylines(frame_resized, [np.array(area, np.int32)], True, color, 2)  # Draw the defined areas
                     if i in self.labels:
                         label = self.labels[i]
-                        label_position = (
-                            int(area[0][0]), int(area[0][1] - 10))
-                        cv2.putText(frame_resized, label, label_position,
-                                    cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2, cv2.LINE_AA)
+                        label_position = (int(area[0][0]), int(area[0][1] - 10))
+                        cv2.putText(frame_resized, label, label_position, cv2.FONT_HERSHEY_SIMPLEX, 0.7, color, 2, cv2.LINE_AA)
 
                         # Check parking space occupancy and update the parking_status dictionary
-                        for i, area in enumerate(self.polygons):
-                            is_empty = True
-                            for index, row in results.pandas().xyxy[0].iterrows():
-                                x1 = int(row['xmin'])
-                                y1 = int(row['ymin'])
-                                x2 = int(row['xmax'])
-                                y2 = int(row['ymax'])
-                                cx = (x1 + x2) // 2
-                                cy = (y1 + y2) // 2
-                                if 'car' in row['name']:
-                                    if cv2.pointPolygonTest(np.array(area, np.int32), (cx, cy), False) >= 0:
-                                        is_empty = False
-                                        break
+                        is_empty = True
+                        for index, row in results.pandas().xyxy[0].iterrows():
+                            x1 = int(row['xmin'])
+                            y1 = int(row['ymin'])
+                            x2 = int(row['xmax'])
+                            y2 = int(row['ymax'])
+                            cx = (x1 + x2) // 2
+                            cy = (y1 + y2) // 2
+                            if 'car' in row['name']:
+                                if cv2.pointPolygonTest(np.array(area, np.int32), (cx, cy), False) >= 0:
+                                    is_empty = False
+                                    break
 
-                            label = self.labels.get(i, f"p{i}")
-                            self.parking_status[label] = "empty" if is_empty else "full"
+                        label = self.labels.get(i, f"p{i}")
+                        self.parking_status[label] = "empty" if is_empty else "full"
+                        # Change color to red if the polygon is not empty
+                        if not is_empty:
+                            color = (0, 0, 255)
 
-                print("Total empty spaces:", list(self.parking_status.values()).count(
-                    "empty"), "/", len(self.parking_status))
-                for label, status in self.parking_status.items():
-                    print(f"{label}: {status}")
+                    cv2.polylines(frame_resized, [np.array(area, np.int32)], True, color, 2)  # Draw the defined areas
+                    if i in self.labels:
+                        label = self.labels[i]
+                        label_position = (int(area[0][0]), int(area[0][1] - 10))
+                        cv2.putText(frame_resized, label, label_position, cv2.FONT_HERSHEY_SIMPLEX, 0.7, color, 2, cv2.LINE_AA)
 
                 total_spaces = len(self.parking_status)
-                occupied_spaces = list(
-                    self.parking_status.values()).count("full")
+                occupied_spaces = list(self.parking_status.values()).count("full")
                 occupancy_rate = (occupied_spaces / total_spaces) * 100
 
-                self.frame_available.emit(
-                    frame_resized, self.parking_status, occupancy_rate)
+                self.frame_available.emit(frame_resized, self.parking_status, occupancy_rate)
 
         cap.release()
 
