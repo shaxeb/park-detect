@@ -83,7 +83,8 @@ class Controller:
         # Resize the frame and drawing area in the UI
         self.view.camViewLabel.setFixedSize(width, height)
         self.view.drawingWidget.setGeometry(0, 0, width, height)
-        self.view.aiViewLabel.setFixedSize(width, height)  # Set aiViewLabel size
+        self.view.aiViewLabel.setFixedSize(
+            width, height)  # Set aiViewLabel size
 
         # Start the video thread with the new aspect ratio
         if self.video_thread is not None:
@@ -136,19 +137,21 @@ class Controller:
 
         self.ai_processing_thread.start()
 
-    @Slot(np.ndarray, dict, float)
-    def display_ai_frame(self, frame, parking_status, occupancy_rate):
+    @Slot(np.ndarray, dict, dict, float)
+    def display_ai_frame(self, frame, parking_status, parking_duration, occupancy_rate):
         try:
             # Convert the frame to QImage format
             frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-            q_image = QImage(frame_rgb.data, frame_rgb.shape[1], frame_rgb.shape[0], QImage.Format_RGB888)
+            q_image = QImage(
+                frame_rgb.data, frame_rgb.shape[1], frame_rgb.shape[0], QImage.Format_RGB888)
 
             # Get the selected aspect ratio from the aspectRatioComboBox
             aspect_ratio_data = self.view.aspectRatioComboBox.currentData()
             width, height = aspect_ratio_data
 
             # Scale the QImage to fit the aiViewLabel size while maintaining the aspect ratio
-            scaled_image = q_image.scaled(self.view.aiViewLabel.size(), Qt.AspectRatioMode.KeepAspectRatio, Qt.SmoothTransformation)
+            scaled_image = q_image.scaled(self.view.aiViewLabel.size(
+            ), Qt.AspectRatioMode.KeepAspectRatio, Qt.SmoothTransformation)
 
             # Create a QPixmap from the scaled QImage
             pixmap = QPixmap.fromImage(scaled_image)
@@ -165,11 +168,16 @@ class Controller:
                 if not status_label:
                     status_label = QLabel(self.view.aiPage)
                     status_label.setObjectName(f"parkingStatusLabel{i}")
-                    status_label.setGeometry(label_offset_x, label_offset_y + i * 25, 200, 20)
+                    # Increased height to accommodate duration
+                    status_label.setGeometry(
+                        label_offset_x, label_offset_y + i * 25, 200, 40)
                     self.parking_status_labels[i] = status_label
 
+                label = self.model.labels.get(i, f"p{i}")
                 status = parking_status.get(label, "unknown")
-                status_label.setText(f"{label}: {status.capitalize()}")
+                duration = parking_duration.get(label, 0)
+                status_label.setText(
+                    f"{label}: {status.capitalize()} | Duration: {duration} sec")
 
                 # Change the color of the polygon and label
                 color = (0, 255, 0)  # Green
@@ -177,19 +185,23 @@ class Controller:
                     color = (0, 0, 255)  # Red
 
                 # Draw the polygon with the updated color
-                cv2.polylines(frame, [np.array(area, np.int32)], True, color, 2)
+                cv2.polylines(
+                    frame, [np.array(area, np.int32)], True, color, 2)
                 if i in self.model.labels:
                     label_position = (int(area[0][0]), int(area[0][1] - 10))
-                    cv2.putText(frame, label, label_position, cv2.FONT_HERSHEY_SIMPLEX, 0.7, color, 2, cv2.LINE_AA)
+                    cv2.putText(frame, label, label_position,
+                                cv2.FONT_HERSHEY_SIMPLEX, 0.7, color, 2, cv2.LINE_AA)
 
             # Convert the frame back to RGB format for displaying in the UI
             frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
 
             # Convert the updated frame to QImage format
-            q_image = QImage(frame_rgb.data, frame_rgb.shape[1], frame_rgb.shape[0], QImage.Format_RGB888)
+            q_image = QImage(
+                frame_rgb.data, frame_rgb.shape[1], frame_rgb.shape[0], QImage.Format_RGB888)
 
             # Scale the QImage to fit the aiViewLabel size while maintaining the aspect ratio
-            scaled_image = q_image.scaled(self.view.aiViewLabel.size(), Qt.AspectRatioMode.KeepAspectRatio, Qt.SmoothTransformation)
+            scaled_image = q_image.scaled(self.view.aiViewLabel.size(
+            ), Qt.AspectRatioMode.KeepAspectRatio, Qt.SmoothTransformation)
 
             # Create a QPixmap from the scaled QImage
             pixmap = QPixmap.fromImage(scaled_image)
@@ -441,7 +453,7 @@ class VideoProcessingThread(QThread):
 
 
 class AIProcessingWorker(QObject):
-    frame_available = Signal(np.ndarray, dict, float)
+    frame_available = Signal(np.ndarray, dict, dict, float)
 
     def __init__(self, camera_ip, model, polygons, labels, width, height):
         super().__init__()
@@ -452,6 +464,7 @@ class AIProcessingWorker(QObject):
         self.aspect_ratio = (width, height)
         self.running = False
         self.parking_status = {}
+        self.parking_duration = {}
 
     def process_frame(self):
         cap = cv2.VideoCapture(self.camera_ip)
@@ -485,11 +498,15 @@ class AIProcessingWorker(QObject):
 
                 for i, area in enumerate(self.polygons):
                     color = (0, 255, 0)  # Default color: Green
-                    cv2.polylines(frame_resized, [np.array(area, np.int32)], True, color, 2)  # Draw the defined areas
+                    # Draw the defined areas
+                    cv2.polylines(frame_resized, [np.array(
+                        area, np.int32)], True, color, 2)
                     if i in self.labels:
                         label = self.labels[i]
-                        label_position = (int(area[0][0]), int(area[0][1] - 10))
-                        cv2.putText(frame_resized, label, label_position, cv2.FONT_HERSHEY_SIMPLEX, 0.7, color, 2, cv2.LINE_AA)
+                        label_position = (
+                            int(area[0][0]), int(area[0][1] - 10))
+                        cv2.putText(frame_resized, label, label_position,
+                                    cv2.FONT_HERSHEY_SIMPLEX, 0.7, color, 2, cv2.LINE_AA)
 
                         # Check parking space occupancy and update the parking_status dictionary
                         is_empty = True
@@ -511,17 +528,35 @@ class AIProcessingWorker(QObject):
                         if not is_empty:
                             color = (0, 0, 255)
 
-                    cv2.polylines(frame_resized, [np.array(area, np.int32)], True, color, 2)  # Draw the defined areas
+                            # Check if the parking spot already exists in the parking_duration dictionary
+                            label = self.labels.get(i, f"p{i}")
+                            if label in self.parking_duration:
+                                # Update the parking duration for the occupied spot
+                                self.parking_duration[label] += 1
+                            else:
+                                # Initialize the parking duration for a new occupied spot
+                                self.parking_duration[label] = 1
+                        else:
+                            # Clear the parking duration for empty spots
+                            self.parking_duration[label] = 0
+
+                    # Draw the defined areas
+                    cv2.polylines(frame_resized, [np.array(
+                        area, np.int32)], True, color, 2)
                     if i in self.labels:
                         label = self.labels[i]
-                        label_position = (int(area[0][0]), int(area[0][1] - 10))
-                        cv2.putText(frame_resized, label, label_position, cv2.FONT_HERSHEY_SIMPLEX, 0.7, color, 2, cv2.LINE_AA)
+                        label_position = (
+                            int(area[0][0]), int(area[0][1] - 10))
+                        cv2.putText(frame_resized, label, label_position,
+                                    cv2.FONT_HERSHEY_SIMPLEX, 0.7, color, 2, cv2.LINE_AA)
 
                 total_spaces = len(self.parking_status)
-                occupied_spaces = list(self.parking_status.values()).count("occupied")
+                occupied_spaces = list(
+                    self.parking_status.values()).count("occupied")
                 occupancy_rate = (occupied_spaces / total_spaces) * 100
 
-                self.frame_available.emit(frame_resized, self.parking_status, occupancy_rate)
+                self.frame_available.emit(
+                    frame_resized, self.parking_status, self.parking_duration, occupancy_rate)
 
         cap.release()
 
