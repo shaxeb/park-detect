@@ -172,7 +172,7 @@ class DrawingWidget(QWidget):
             "SELECT polygon_data FROM Cameras WHERE id = ?", (self.camera_id,)
         )
         result = self.cursor.fetchone()
-        if result is not None:
+        if result is not None and result[0]:
             polygon_data_json = result[0]
             polygon_data = json.loads(polygon_data_json)
 

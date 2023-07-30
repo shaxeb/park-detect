@@ -7,7 +7,7 @@ import numpy as np
 import torch
 from PySide6.QtCore import (QMutex, QObject, QThread, QWaitCondition, Signal,
                             Slot)
-from PySide6.QtGui import QImage, QPixmap, Qt
+from PySide6.QtGui import QIcon, QImage, QPixmap, Qt
 from PySide6.QtWidgets import (QApplication, QLabel, QMainWindow, QMessageBox,
                                QPushButton, QTableWidgetItem)
 
@@ -106,7 +106,9 @@ class Controller:
     def start_ai_stream(self, camera_ip):
         self.model.selected_ip = camera_ip
         self.model.polygons, self.model.labels = self.get_polygons(camera_ip)
-        self.view.stackedWidget.setCurrentWidget(self.view.aiPage)
+        
+        self.view.stackedWidget.setCurrentIndex(3)
+        
         if self.video_processing_thread is not None:
             self.video_processing_thread.stop()
             self.video_processing_thread.wait()
@@ -571,7 +573,8 @@ class MainWindow(QMainWindow):
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
 
-        self.setWindowTitle("WiseLens AI")
+        self.setWindowTitle("WiseLens AI - WisePark")
+        self.setWindowIcon(QIcon("favicon.ico"))
 
         self.ui.icon_only_widget.hide()
         self.ui.stackedWidget.setCurrentIndex(0)
