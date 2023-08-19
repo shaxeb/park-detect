@@ -61,10 +61,19 @@ class Controller:
 
         self.conn = sqlite3.connect("camera_database.db")
 
-        # Load the YOLOv5 model
+        # Check if CUDA is available and set device
+        if torch.cuda.is_available():
+            self.device = torch.device('cuda')
+        else:
+            self.device = torch.device('cpu')
+
+        # Load YOLOv5 model
         self.model.yolov5_model = torch.hub.load(
-            'ultralytics/yolov5', 'yolov5s', pretrained=True
-        )
+            'ultralytics/yolov5', 'yolov5s')
+
+        # Move model to the selected device
+        self.model.yolov5_model.to(self.device)
+
         print("YOLOv5 model loaded successfully.")
 
         self.view.runAIButton.clicked.connect(self.run_ai_button_clicked)
@@ -96,19 +105,23 @@ class Controller:
 
     @Slot()
     def run_ai_button_clicked(self):
-        selected_row = self.view.camTableWidget.currentRow()
-        if selected_row >= 0:
-            ip_item = self.view.camTableWidget.item(selected_row, 1)
-            if ip_item:
-                camera_ip = ip_item.text()
-                self.start_ai_stream(camera_ip)
+        if torch.cuda.is_available():
+            selected_row = self.view.camTableWidget.currentRow()
+            if selected_row >= 0:
+                ip_item = self.view.camTableWidget.item(selected_row, 1)
+                if ip_item:
+                    camera_ip = ip_item.text()
+                    self.start_ai_stream(camera_ip)
+        else:
+            QMessageBox.warning(
+                self.view.centralwidget, "CUDA Unavailable", "This program requires CUDA support for GPU acceleration, which is not available on this system.")
 
     def start_ai_stream(self, camera_ip):
         self.model.selected_ip = camera_ip
         self.model.polygons, self.model.labels = self.get_polygons(camera_ip)
-        
+
         self.view.stackedWidget.setCurrentIndex(3)
-        
+
         if self.video_processing_thread is not None:
             self.video_processing_thread.stop()
             self.video_processing_thread.wait()
